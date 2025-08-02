@@ -1,6 +1,7 @@
 package com.MiDoc.Midoc.DTO;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,13 +17,18 @@ public class DoctorDTO {
     @Email(message = "Correo Invalido.")
     private String correo;
 
+    @Max(value = 120, message = "La edad no puede pasar de 120.")
     @Min(value = 18, message = "La edad minima es de 18.")
     private int edad;
 
     @NotBlank(message = "La especialidad es obligatoria.")
     private String especialidad;
 
+    @NotBlank (message =  "El rol es obligatorio.")
     private String rol;
+
+    @NotBlank (message = "La contraseña es obligatoria.")
+    @Size(min = 6, message = "La contraseña debe de tener al menos 6 caracteres.")
     private String contra;
 
     public DoctorDTO(){}

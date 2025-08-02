@@ -1,6 +1,7 @@
 package com.MiDoc.Midoc.DTO;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,11 +10,12 @@ public class UsuarioDTO {
 
     private Long id;
 
+    @Max(value = 120, message = "La edad no puede pasar de 120.")
     @Min(value = 18, message = "La edad minima es de 18")
     private int edad;
 
-    @NotBlank(message = "El nombre del usuario es obligatorio.")
-    @Size(min = 4, max = 50, message = "El nombre debe tener entre 4 y 50 caracteres")
+    @NotBlank(message = "El nombre es obligatorio.")
+    @Size(min = 4, max = 50, message = "El nombre debe tener entre 4 y 50 caracteres.")
     private String nombre;
 
     @NotBlank(message = "La contraseña es obligatoria.")
