@@ -4,19 +4,31 @@ import com.MiDoc.Midoc.Model.Doctor;
 
 public class ValidarDoctor {
 
-    public static void Validar(Doctor doctor){
-        if(doctor.getNombre() == null || doctor.getNombre().isBlank()){
+    public static void Validar(Doctor doctor) {
+
+        // Nombre
+        if (esInvalido(doctor.getNombre())) {
             throw new IllegalArgumentException("El nombre del doctor es obligatorio.");
         }
-         if(doctor.getCorreo() == null || doctor.getCorreo().isBlank()){
+
+        // Correo
+        if (esInvalido(doctor.getCorreo())) {
             throw new IllegalArgumentException("El correo del doctor es obligatorio.");
+        } else if (!correoValido(doctor.getCorreo())) {
+            throw new IllegalArgumentException("El correo proporcionado no es válido.");
         }
-        else if(!doctor.getCorreo().contains("@")){
-            throw new IllegalArgumentException("Correo no valido");
-        }
-        if(doctor.getEspecialidad() == null || doctor.getEspecialidad().isBlank()){
-            throw new IllegalArgumentException("La especialidad es obligatoria ");
+
+        // Especialidad
+        if (esInvalido(doctor.getEspecialidad())) {
+            throw new IllegalArgumentException("La especialidad del doctor es obligatoria.");
         }
     }
-    
+
+    private static boolean esInvalido(String campo) {
+        return campo == null || campo.trim().isEmpty();
+    }
+
+    private static boolean correoValido(String correo) {
+        return correo.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
+    }
 }

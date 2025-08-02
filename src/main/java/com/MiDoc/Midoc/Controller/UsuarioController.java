@@ -1,58 +1,68 @@
-package com.MiDoc.Midoc.Controller; import com.MiDoc.Midoc.DTO.PacienteDTO; import com.MiDoc.
+package com.MiDoc.Midoc.Controller;
 
-Midoc.DTO.UsuarioDTO; import com.MiDoc.Midoc.Mappers.PacienteMapper; import com.MiDoc.Midoc.
+import com.MiDoc.Midoc.DTO.UsuarioDTO;
+import com.MiDoc.Midoc.Mappers.UsuarioMapper;
+import com.MiDoc.Midoc.Model.Usuario;
+import com.MiDoc.Midoc.Service.UsuarioService;
 
-Mappers.UsuarioMapper; import com.MiDoc.Midoc.Model.Doctor; import com.MiDoc.Midoc.Model.Paciente; import com.MiDoc.Midoc.Model.Usuario; import com.MiDoc.Midoc.Repository.
-repositoryUsuario; import com.MiDoc.Midoc.Service.usuarioService; import jakarta.validation.
+import jakarta.validation.Valid;
 
-Valid; import java.util.List; import java.util.Optional; import org.springframework.beans.
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
-factory.annotation.Autowired; import org.springframework.data.repository.support.Repositories; 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
-
-import org.springframework.http.ResponseEntity; import org.springframework.web.bind.annotation.*;
-
+@Tag(name = "Usuarios", description = "Operaciones CRUD para usuarios base del sistema")
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
     @Autowired
-    private usuarioService usuarioService;
+    private UsuarioService UsuarioService;
 
+    @Operation(summary = "Listar todos los usuarios")
     @GetMapping
     public List<UsuarioDTO> listarUsuarios() {
-        return usuarioService.listarUsuarios().stream()
-                             .map(UsuarioMapper::toDto)
-                             .toList();
+        return UsuarioService.listarUsuarios().stream()
+                .map(UsuarioMapper::toDto)
+                .toList();
     }
 
+    @Operation(summary = "Registrar un nuevo usuario")
     @PostMapping
-    public ResponseEntity<UsuarioDTO> crear(@RequestBody @Valid UsuarioDTO dto){
+    public ResponseEntity<UsuarioDTO> crear(@RequestBody @Valid UsuarioDTO dto) {
         Usuario usuario = UsuarioMapper.toEntity(dto);
-        Usuario creado = usuarioService.registrarUsuario(usuario);
+        Usuario creado = UsuarioService.registrarUsuario(usuario);
         return ResponseEntity.ok(UsuarioMapper.toDto(creado));
     }
 
+    @Operation(summary = "Obtener un usuario por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> obtenerUsuario(@PathVariable Long id){
-        return usuarioService.obtenerUsuario(id)
+    public ResponseEntity<UsuarioDTO> obtenerUsuario(@PathVariable Long id) {
+        return UsuarioService.obtenerUsuario(id)
                 .map(UsuarioMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Eliminar un usuario por ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
-        return usuarioService.eliminarUsuario(id)
+        return UsuarioService.eliminarUsuario(id)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }
 
+    @Operation(summary = "Actualizar un usuario por ID")
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id, @RequestBody @Valid UsuarioDTO dto) {
+    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id,
+                                                        @RequestBody @Valid UsuarioDTO dto) {
         Usuario actualizado = UsuarioMapper.toEntity(dto);
-        return usuarioService.actualizarUsuario(id, actualizado)
+        return UsuarioService.actualizarUsuario(id, actualizado)
                 .map(UsuarioMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

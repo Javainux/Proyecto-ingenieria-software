@@ -1,8 +1,10 @@
 package com.MiDoc.Midoc.Service;
 
+import com.MiDoc.Midoc.Exception.UsuarioInvalidDataException;
 import com.MiDoc.Midoc.Model.Usuario;
-import com.MiDoc.Midoc.Repository.repositoryUsuario;
+import com.MiDoc.Midoc.Repository.UsuarioRepository;
 import com.MiDoc.Midoc.Util.ValidarUsuario;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,17 +12,26 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class usuarioService {
-    
-    @Autowired
-    private repositoryUsuario usuarioRepo;
+public class UsuarioService {
 
+    private final UsuarioRepository usuarioRepo;
+
+    @Autowired
+    public UsuarioService(UsuarioRepository usuarioRepo) {
+        this.usuarioRepo = usuarioRepo;
+    }
 
     public List<Usuario> listarUsuarios() {
         return usuarioRepo.findAll();
     }
 
     public Usuario registrarUsuario(Usuario usuario) {
+        if (usuario.getEdad() <= 0) {
+            throw new UsuarioInvalidDataException("La edad debe ser mayor a 0.");
+        } else if (usuario.getEdad() > 120) {
+            throw new UsuarioInvalidDataException("La edad no debe ser mayor a 120.");
+        }
+
         ValidarUsuario.Validar(usuario);
         return usuarioRepo.save(usuario);
     }

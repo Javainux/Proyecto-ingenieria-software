@@ -4,29 +4,34 @@ import com.MiDoc.Midoc.DTO.DoctorDTO;
 import com.MiDoc.Midoc.Model.Doctor;
 
 public class DoctorMapper {
-    public static DoctorDTO tDto(Doctor doctor){
-        if(doctor == null){
+
+    // Convierte una entidad Doctor en su DTO correspondiente
+    public static DoctorDTO tDto(Doctor doctor) {
+        if (doctor == null) {
             return null;
         }
 
         return new DoctorDTO(
             doctor.getId(),
             doctor.getNombre(),
-            doctor.getCorreo(),
-            doctor.getEdad(),
             doctor.getEspecialidad(),
+            doctor.getCorreo(),
+            doctor.getNumero(),
+            doctor.getEdad(),
             doctor.getRol(),
             doctor.getContra()
         );
     }
 
-    public static Doctor toEntity(DoctorDTO dto){
-          if (dto == null) {
+    // Convierte un DoctorDTO en una entidad Doctor
+    public static Doctor toEntity(DoctorDTO dto) {
+        if (dto == null) {
             return null;
         }
 
-         return new Doctor(
+        return new Doctor(
             dto.getId(),
+            dto.getNumero(),
             dto.getEspecialidad(),
             dto.getNombre(),
             dto.getCorreo(),
@@ -35,5 +40,4 @@ public class DoctorMapper {
             dto.getEdad()
         );
     }
-    }
-
+}

@@ -1,43 +1,55 @@
 package com.MiDoc.Midoc.Service;
 
+import com.MiDoc.Midoc.Exception.PacienteInvalidDataException;
+import com.MiDoc.Midoc.Model.Paciente;
+import com.MiDoc.Midoc.Repository.PacienteRepository;
+import com.MiDoc.Midoc.Util.ValidarPaciente;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-import com.MiDoc.Midoc.Util.ValidarPaciente;
-import com.MiDoc.Midoc.Model.Paciente;
-import com.MiDoc.Midoc.Repository.RepositoryPaciente;
 
 @Service
 public class PacienteService {
 
-    private RepositoryPaciente pacienteRepo; 
+    private final PacienteRepository pacienteRepo;
 
-    
+    @Autowired
+    public PacienteService(PacienteRepository pacienteRepo) {
+        this.pacienteRepo = pacienteRepo;
+    }
 
-    public List<Paciente> listarPacientes(){
+    public List<Paciente> listarPacientes() {
         return pacienteRepo.findAll();
     }
 
-    public Paciente registrarPaciente(Paciente paciente){
+    public Paciente registrarPaciente(Paciente paciente) {
+        if (paciente.getEdad() <= 0) {
+            throw new PacienteInvalidDataException("La edad debe ser mayor a 0.");
+        } else if (paciente.getEdad() > 120) {
+            throw new PacienteInvalidDataException("La edad no debe ser mayor a 120.");
+        }
+
         ValidarPaciente.Validar(paciente);
         return pacienteRepo.save(paciente);
     }
 
-    public Optional<Paciente> obtenerPaciente(Long id){
-        return pacienteRepo.findById(id);
+    public Paciente obtenerPaciente(Long id) {
+        return pacienteRepo.findById(id)
+                .orElseThrow(() -> new PacienteInvalidDataException("El id " + id + " no existe."));
     }
 
-    public boolean eliminarPaciente(Long id){
-        if(pacienteRepo.existsById(id)){
+    public boolean eliminarPaciente(Long id) {
+        if (pacienteRepo.existsById(id)) {
             pacienteRepo.deleteById(id);
             return true;
         }
-
         return false;
     }
 
-    public Optional <Paciente> actualizarPaciente(Long id, Paciente datosActualizados) {
+    public Optional<Paciente> actualizarPaciente(Long id, Paciente datosActualizados) {
         ValidarPaciente.Validar(datosActualizados);
         return pacienteRepo.findById(id).map(paciente -> {
             paciente.setNombre(datosActualizados.getNombre());
@@ -50,5 +62,4 @@ public class PacienteService {
             return pacienteRepo.save(paciente);
         });
     }
-    
 }
