@@ -2,6 +2,7 @@ package com.MiDoc.Midoc.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.userdetails.User;
@@ -16,10 +17,18 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // ← permite docs
-            .anyRequest().authenticated()
-    )
-        .formLogin(withDefaults());
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/citas",
+                    "/citas/**"
+                ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/citas").permitAll()
+                .anyRequest().authenticated()
+            )
+            .csrf(csrf -> csrf.disable()) // ✅ desactiva CSRF para pruebas con curl
+            .formLogin(withDefaults());
         return http.build();
     }
 
@@ -32,4 +41,3 @@ public class WebSecurityConfig {
         return new InMemoryUserDetailsManager(user);
     }
 }
-
