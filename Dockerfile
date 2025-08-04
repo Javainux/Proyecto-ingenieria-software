@@ -7,7 +7,8 @@ RUN mvn clean package -DskipTests
 
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from=build /app/target/MiDoc-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/Midoc-0.0.1-SNAPSHOT.jar app.jar
+
 
 
 
