@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MidocApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MidocApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(MidocApplication.class, args);
+    }
 }
