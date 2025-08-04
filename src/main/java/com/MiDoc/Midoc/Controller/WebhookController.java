@@ -9,9 +9,7 @@ public class WebhookController {
     @PostMapping("/webhook")
     public ResponseEntity<String> recibirWebhook(@RequestBody String payload) {
         System.out.println("📦 Webhook recibido:");
-        System.out.println(payload); // Puedes loguearlo o procesarlo
-
-        // Aquí podrías validar o procesar el JSON si lo deseas
+        System.out.println(payload); 
 
         return ResponseEntity.ok("✅ Webhook recibido correctamente");
     }
