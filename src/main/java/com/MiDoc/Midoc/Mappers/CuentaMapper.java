@@ -16,7 +16,6 @@ public class CuentaMapper {
         Cuenta cuenta = new Cuenta();
         cuenta.setUsuario(dto.getUsuario());
         cuenta.setPassword(dto.getPassword());
-        cuenta.setRol(dto.getRol());
         cuenta.setUsuarioPerfil(usuarioRepo.findById(dto.getUsuarioPerfilId()).orElse(null));
         return cuenta;
     }
