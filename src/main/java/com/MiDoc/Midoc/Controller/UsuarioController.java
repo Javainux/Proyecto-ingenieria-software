@@ -24,6 +24,7 @@ public class UsuarioController {
     @Autowired
     private UsuarioService UsuarioService;
 
+
     @Operation(summary = "Listar todos los usuarios")
     @GetMapping
     public List<UsuarioDTO> listarUsuarios() {

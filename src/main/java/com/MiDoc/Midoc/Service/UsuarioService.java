@@ -6,6 +6,7 @@ import com.MiDoc.Midoc.Repository.UsuarioRepository;
 import com.MiDoc.Midoc.Util.ValidarUsuario;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +16,10 @@ import java.util.Optional;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepo;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 
     @Autowired
     public UsuarioService(UsuarioRepository usuarioRepo) {
@@ -32,7 +37,12 @@ public class UsuarioService {
             throw new UsuarioInvalidDataException("La edad no debe ser mayor a 120.");
         }
 
+        if (usuarioRepo.findByCorreo(usuario.getCorreo()).isPresent()) {
+        throw new UsuarioInvalidDataException("El correo ya está registrado.");
+}
+
         ValidarUsuario.Validar(usuario);
+        usuario.setContra(passwordEncoder.encode(usuario.getContra()));
         return usuarioRepo.save(usuario);
     }
 
