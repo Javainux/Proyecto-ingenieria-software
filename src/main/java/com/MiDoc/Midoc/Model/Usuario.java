@@ -23,7 +23,7 @@ public class Usuario {
     private Integer edad;
 
     @NotBlank(message = "La contraseña no puede estar vacía")
-    @Schema(description = "Contraseña del usuario", example = "miContrasena123")
+    @Schema(description = "Contraseña encriptada del usuario", example = "$2a$10$...")
     private String contra;
 
     @NotBlank(message = "El rol debe especificarse")
@@ -37,10 +37,10 @@ public class Usuario {
     @Schema(description = "Número telefónico del usuario", example = "2281234567")
     private String numero;
 
-    // 🔧 Constructor vacío necesario para JPA
+    // Constructor vacío necesario para JPA
     public Usuario() {}
 
-    // 🛠 Constructor completo
+    // Constructor completo
     public Usuario(Long id, String numero, String nombre, Integer edad, String contra, String rol, String correo) {
         this.id = id;
         this.numero = numero;
@@ -51,7 +51,7 @@ public class Usuario {
         this.correo = correo;
     }
 
-    // 🧾 Getters y Setters
+    // Getters y Setters
     public Long getId() { return id; }
 
     public String getNombre() { return nombre; }
@@ -61,7 +61,11 @@ public class Usuario {
     public void setEdad(Integer edad) { this.edad = edad; }
 
     public String getContra() { return contra; }
-    public void setContra(String contra) { this.contra = contra; }
+
+    // Seteo de contraseña encriptada
+    public void setContra(String contra) {
+        this.contra = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode(contra);
+    }
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }

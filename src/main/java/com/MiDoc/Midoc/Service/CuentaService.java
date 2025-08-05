@@ -15,7 +15,7 @@ public class CuentaService {
     
     @Autowired
     private CuentaRepository cuentaRepo;
-    
+
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -24,8 +24,18 @@ public class CuentaService {
 
     public CuentaResponseDTO crearCuenta(CuentaRequestDTO dto) {
     Cuenta nueva = mapper.toEntity(dto);
-    nueva.setPassword(passwordEncoder.encode(dto.getPassword())); // 🔒 Aquí encriptamos
-    return mapper.toDTO(cuentaRepo.save(nueva));
+
+    // Aseguramos que la contraseña se encripta solo si no está ya cifrada
+    String rawPassword = dto.getPassword();
+    if (!rawPassword.startsWith("$2a$")) {
+        rawPassword = passwordEncoder.encode(rawPassword);
+    }
+
+    nueva.setPassword(rawPassword);
+
+    // Guardamos la cuenta y devolvemos el DTO
+    Cuenta saved = cuentaRepo.save(nueva);
+    return mapper.toDTO(saved);
 }
 
     public CuentaResponseDTO obtenerCuenta(Long id) {
