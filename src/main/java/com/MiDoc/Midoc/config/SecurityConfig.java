@@ -27,11 +27,14 @@ public class SecurityConfig {
             .httpBasic().disable()
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/", // 
+                    "/", 
                     "/cuenta/login", "/cuenta/crear",
-                    "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                    "/citas", "/ßcitas/**"
+                    "/usuarios", "/login", 
+                    "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", 
+                    "/citas", "/ßcitas/**" 
                 ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
+                .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/citas").permitAll()
                 .anyRequest().authenticated()
             );
