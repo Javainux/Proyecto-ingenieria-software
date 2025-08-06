@@ -32,7 +32,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/cuenta/login").permitAll()
+                .requestMatchers("/", "/cuenta/login").permitAll() // 👈 Se agregó "/" aquí
                 .anyRequest().authenticated()
             );
 
