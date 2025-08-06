@@ -2,6 +2,7 @@ package com.MiDoc.Midoc.config;
 
 import java.util.List;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,8 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
 @Configuration
@@ -42,40 +43,42 @@ public class SecurityConfig {
                     "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                     "/login", "/webhook", "/api/metodos-pago/**"
                 ).permitAll()
-                .anyRequest().authenticated() // 👈 Esto protege el resto
+                .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
             .sessionManagement(session -> session
-                .maximumSessions(1) // 👈 Opcional: limita sesiones por usuario
+                .maximumSessions(1)
             );
 
         return http.build();
     }
 
+    // ✅ Filtro CORS registrado manualmente con prioridad
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
+    public FilterRegistrationBean<CorsFilter> corsFilterRegistrationBean() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    // 👇 Origen dinámico desde variable de entorno
-    String frontendOrigin = System.getenv("FRONTEND_ORIGIN");
-    if (frontendOrigin == null || frontendOrigin.isBlank()) {
-        frontendOrigin = "http://localhost:5173"; // valor por defecto
+        String frontendOrigin = System.getenv("FRONTEND_ORIGIN");
+        if (frontendOrigin == null || frontendOrigin.isBlank()) {
+            frontendOrigin = "http://localhost:5173";
+        }
+
+        configuration.setAllowedOrigins(List.of(frontendOrigin));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Set-Cookie"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        bean.setOrder(0); // 👈 Ejecuta antes que Spring Security
+
+        System.out.println("✅ Filtro CORS registrado para origen: " + frontendOrigin);
+
+        return bean;
     }
-
-    configuration.setAllowedOrigins(List.of(frontendOrigin));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-    configuration.setExposedHeaders(List.of("Set-Cookie"));
-    configuration.setAllowCredentials(true);
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-
-    System.out.println("✅ CORS configurado para origen: " + frontendOrigin);
-
-    return source;
-}
-
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
