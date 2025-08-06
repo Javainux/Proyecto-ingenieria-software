@@ -16,6 +16,8 @@ public class MidocApplication {
         };
     }
 
+
+
     public static void main(String[] args) {
         SpringApplication.run(MidocApplication.class, args);
 		System.out.println("✅ MidocApplication arrancó correctamente."); 

@@ -11,6 +11,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 @Configuration
 public class SecurityConfig {
@@ -24,7 +28,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors().corsConfigurationSource (corsConfigurationSource()) // ← Activa configuración CORS
+            .cors() // ← Activa configuración CORS
             .and()
             .csrf().disable()
             .formLogin().disable()
