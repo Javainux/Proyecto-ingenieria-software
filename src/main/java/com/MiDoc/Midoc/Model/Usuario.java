@@ -78,7 +78,7 @@ public class Usuario implements UserDetails{
 
     // Seteo de contraseña encriptada
     public void setContra(String contra) {
-        this.contra = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode(contra);
+        this.contra = contra;
     }
 
     public String getRol() { return rol; }

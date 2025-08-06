@@ -27,12 +27,16 @@ public class UsuarioController {
         return usuarioService.getAllUsuarios();
     }
 
-    @Operation(summary = "Registrar un nuevo usuario")
     @PostMapping
-    public ResponseEntity<UsuarioDTO> crear(@RequestBody @Valid UsuarioDTO dto) {
+    public ResponseEntity<?> crear(@RequestBody @Valid UsuarioDTO dto) {
+        if (usuarioService.existsByCorreo(dto.getCorreo())) {
+            return ResponseEntity.status(409).body("Correo ya registrado");
+        }
+
         UsuarioDTO creado = usuarioService.createUsuario(dto);
         return ResponseEntity.ok(creado);
     }
+
 
     @Operation(summary = "Obtener un usuario por ID")
     @GetMapping("/{id}")
@@ -51,8 +55,15 @@ public class UsuarioController {
 
     @Operation(summary = "Eliminar un usuario por ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarUsuario(@PathVariable Long id) {
+        if (!usuarioService.existsById(id)) {
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+        }
+
         usuarioService.deleteUsuario(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Usuario eliminado");
     }
+
+
 }
+

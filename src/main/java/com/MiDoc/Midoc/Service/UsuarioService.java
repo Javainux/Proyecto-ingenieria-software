@@ -72,4 +72,13 @@ public class UsuarioService {
     public void deleteUsuario(Long id) {
         usuarioRepository.deleteById(id);
     }
+
+    public boolean existsById(Long id) {
+        return usuarioRepository.existsById(id);
+    }
+
+    public boolean existsByCorreo(String correo) {
+        return usuarioRepository.findByCorreo(correo).isPresent();
+    }
+
 }
