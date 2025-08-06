@@ -30,21 +30,17 @@ public class LoginController {
     private BCryptPasswordEncoder encoder;
 
     @PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
     try {
-        // 🔍 Recuperar el usuario antes de autenticar
         Usuario usuario = usuarioRepo.findByCorreo(loginDTO.getCorreo())
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        System.out.println("🔍 Intentando login para: " + loginDTO.getCorreo());
-        System.out.println("🔑 Contraseña enviada: " + loginDTO.getPassword());
-        System.out.println("🔐 Hash en BD: " + usuario.getContra());
-        System.out.println("✅ Coincide manualmente: " + encoder.matches(loginDTO.getPassword(), usuario.getContra()));
-
-        // 🔐 Autenticación oficial
         Authentication auth = authManager.authenticate(
             new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
         );
+
+        // 👇 Guardar el usuario en la sesión
+        request.getSession(true).setAttribute("usuario", usuario);
 
         return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
 
@@ -64,12 +60,17 @@ public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
     }
 
     @GetMapping("/perfil")
-    public UsuarioPerfilDTO perfil(@RequestParam String correo) {
-        Usuario usuario = usuarioRepo.findByCorreo(correo)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public ResponseEntity<?> perfil(HttpServletRequest request) {
+        Usuario usuario = (Usuario) request.getSession().getAttribute("usuario");
 
-        return new UsuarioPerfilDTO(usuario);
+        if (usuario != null) {
+            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+        } else {
+            return ResponseEntity.status(401).body("No autenticado");
+        }
     }
+
+
 
     @GetMapping("/test-password")
     public boolean testPassword() {
