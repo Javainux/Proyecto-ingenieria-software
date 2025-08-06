@@ -42,10 +42,12 @@ public class SecurityConfig {
                     "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                     "/login", "/webhook", "/api/metodos-pago/**"
                 ).permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated() // 👈 Esto protege el resto
+            )
+            .authenticationProvider(authenticationProvider())
+            .sessionManagement(session -> session
+                .maximumSessions(1) // 👈 Opcional: limita sesiones por usuario
             );
-
-        http.authenticationProvider(authenticationProvider());
 
         return http.build();
     }
@@ -54,21 +56,19 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 👇 Origen local del frontend
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        // 👇 Usa setAllowedOrigins en lugar de setAllowedOriginPatterns
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Ajusta según tu frontend
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true);
-
-        // 👇 Log para confirmar que se aplica en producción
-        System.out.println("✅ CORS configurado para origen: http://localhost:*");
+        configuration.setAllowCredentials(true); // 👈 Necesario para enviar cookies
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
+        System.out.println("✅ CORS configurado para origen: http://localhost:3000");
+
         return source;
     }
-
-
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
