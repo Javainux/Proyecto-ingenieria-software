@@ -1,15 +1,23 @@
 package com.MiDoc.Midoc.DTO;
 
+import com.MiDoc.Midoc.Model.EstadoCita;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class CitaDTO {
-
+    private Long id;
     private Long doctorId;
     private Long pacienteId;
     private LocalDate fecha;
     private LocalTime hora;
     private String motivo;
+    private EstadoCita estado;
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
     public Long getDoctorId() {
         return doctorId;
     }
@@ -40,6 +48,11 @@ public class CitaDTO {
     public void setMotivo(String motivo) {
         this.motivo = motivo;
     }
+    public EstadoCita getEstado() {
+        return estado;
+    }
+    public void setEstado(EstadoCita estado) {
+        this.estado = estado;
+    }
 
-    
 }

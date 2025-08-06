@@ -1,0 +1,58 @@
+package com.MiDoc.Midoc.Controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import com.MiDoc.Midoc.DTO.LoginDTO;
+import com.MiDoc.Midoc.DTO.UsuarioPerfilDTO;
+import com.MiDoc.Midoc.Model.Usuario;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
+@RestController
+@RequestMapping("/cuenta")
+public class LoginController {
+
+
+    @Autowired
+    private AuthenticationManager authManager;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+    try {
+        Authentication auth = authManager.authenticate(
+            new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
+        );
+
+        Usuario usuario = (Usuario) auth.getPrincipal();
+        return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+
+    } catch (Exception e) {
+        return ResponseEntity.status(401).body("Credenciales inválidas");
+    }
+}
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return ResponseEntity.ok("Sesión cerrada correctamente");
+    }
+
+
+
+    @GetMapping("/perfil")
+    public UsuarioPerfilDTO perfil(@AuthenticationPrincipal Usuario usuario) {
+        return new UsuarioPerfilDTO(usuario);
+    }
+
+    
+}

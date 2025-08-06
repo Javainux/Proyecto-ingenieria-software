@@ -13,10 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-
-
-
 import com.MiDoc.Midoc.DTO.MetodoPagoDTO;
 import com.MiDoc.Midoc.Model.MetodoPago;
 import com.MiDoc.Midoc.Model.Usuario;
@@ -58,6 +54,7 @@ public class MetodoPagoController {
         List<MetodoPagoDTO> lista = metodoPagoService.obtenerTodos();
         return ResponseEntity.ok(lista);
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<MetodoPagoDTO> actualizar(@PathVariable Long id, @RequestBody @Valid MetodoPagoDTO dto) {

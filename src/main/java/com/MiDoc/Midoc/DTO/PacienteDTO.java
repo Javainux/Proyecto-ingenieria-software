@@ -1,152 +1,96 @@
 package com.MiDoc.Midoc.DTO;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
+import java.util.List;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
+@Schema(description = "DTO para transferir datos del paciente")
 public class PacienteDTO {
 
-
+    @Schema(description = "ID del paciente", example = "1")
     private Long id;
 
-   
-    @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min = 4, max = 50, message = "El nombre debe tener entre 4 y 50 caracteres.")
-    private String nombre;
-
- 
-    @Email(message = "Correo inválido")
-    @NotBlank(message = "El correo es obligatorio.")
-    private String correo;
-
- 
-    @NotBlank(message = "Los síntomas son obligatorios.")
-    private String sintomas;
-
-  
-    @Max(value = 120, message = "La edad no puede pasar de 120.")
-    @Min(value = 18, message = "La edad mínima es 18.")
-    private Integer edad;
-
-
-    @NotBlank(message = "La dirección es obligatoria.")
-    private String direccion;
-
-   
-    @NotBlank(message = "El número de celular es obligatorio.")
-    @Size(min = 10, max = 15, message = "Debe tener entre 10 y 15 dígitos.")
+    @NotBlank(message = "El número no puede estar vacío")
+    @Schema(description = "Número de identificación del paciente", example = "123456")
     private String numero;
 
- 
-    @NotBlank(message = "El rol es obligatorio.")
-    private String rol;
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Schema(description = "Nombre completo del paciente", example = "Ana López")
+    private String nombre;
 
-    
-    @NotBlank(message = "La contraseña es obligatoria.")
-    @Size(min = 6, message = "Debe tener al menos 6 caracteres.")
+    @NotNull(message = "La edad es obligatoria")
+    @Min(value = 0, message = "La edad no puede ser negativa")
+    @Schema(description = "Edad del paciente", example = "28")
+    private Integer edad;
+
+    @NotBlank(message = "La contraseña no puede estar vacía")
+    @Schema(description = "Contraseña del paciente", example = "miClaveSegura123")
     private String contra;
 
-   
-    @NotBlank(message = "El CURP es obligatorio.")
+    @NotBlank(message = "El rol es obligatorio")
+    @Schema(description = "Rol del usuario", example = "PACIENTE")
+    private String rol;
+
+    @Email(message = "Correo inválido")
+    @Schema(description = "Correo electrónico del paciente", example = "ana.lopez@example.com")
+    private String correo;
+
+    @Schema(description = "URL de la foto de perfil", example = "https://miapp.com/fotos/ana.jpg")
+    private String foto_url;
+
+    @NotBlank(message = "El CURP no puede estar vacío")
+    @Schema(description = "CURP del paciente", example = "LOAA920305HMCLNS08")
     private String curp;
 
-    public PacienteDTO() {}
+    @Schema(description = "Dirección del paciente", example = "Calle 5 #45, Xalapa, Ver.")
+    private String direccion;
 
-    public PacienteDTO(Long id, String nombre, String correo, Integer edad, String sintomas, String direccion, String numero, String rol, String contra, String curp) {
-        this.id = id;
-        this.nombre = nombre;
-        this.correo = correo;
-        this.edad = edad;
-        this.sintomas = sintomas;
-        this.direccion = direccion;
-        this.numero = numero;
-        this.rol = rol;
-        this.contra = contra;
-        this.curp = curp;
-    }
+    @Schema(description = "Lista de alergias", example = "[\"Polen\", \"Lácteos\"]")
+    private List<String> alergias;
 
-    public Long getId() {
-        return id;
-    }
+    @Schema(description = "Lista de enfermedades crónicas", example = "[\"Asma\"]")
+    private List<String> enfermedadesCronicas;
 
+    @Schema(description = "Teléfono de contacto de emergencia", example = "2281234567")
+    private String contactoEmergencia;
 
-    public String getNombre() {
-        return nombre;
-    }
+    // Getters y setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
 
-    public String getCorreo() {
-        return correo;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
+    public Integer getEdad() { return edad; }
+    public void setEdad(Integer edad) { this.edad = edad; }
 
-    public String getSintomas() {
-        return sintomas;
-    }
+    public String getContra() { return contra; }
+    public void setContra(String contra) { this.contra = contra; }
 
-    public void setSintomas(String sintomas) {
-        this.sintomas = sintomas;
-    }
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 
-    public Integer getEdad() {
-        return edad;
-    }
+    public String getCorreo() { return correo; }
+    public void setCorreo(String correo) { this.correo = correo; }
 
-    public void setEdad(Integer edad) {
-        this.edad = edad;
-    }
+    public String getFoto_url() { return foto_url; }
+    public void setFoto_url(String foto_url) { this.foto_url = foto_url; }
 
-    public String getDireccion() {
-        return direccion;
-    }
+    public String getCurp() { return curp; }
+    public void setCurp(String curp) { this.curp = curp; }
 
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
-    }
+    public String getDireccion() { return direccion; }
+    public void setDireccion(String direccion) { this.direccion = direccion; }
 
-    public String getNumero() {
-        return numero;
-    }
+    public List<String> getAlergias() { return alergias; }
+    public void setAlergias(List<String> alergias) { this.alergias = alergias; }
 
-    public void setNumero(String numero) {
-        this.numero = numero;
-    }
+    public List<String> getEnfermedadesCronicas() { return enfermedadesCronicas; }
+    public void setEnfermedadesCronicas(List<String> enfermedadesCronicas) { this.enfermedadesCronicas = enfermedadesCronicas; }
 
-    public String getRol() {
-        return rol;
-    }
-
-    public void setRol(String rol) {
-        this.rol = rol;
-    }
-
-    public String getContra() {
-        return contra;
-    }
-
-    public void setContra(String contra) {
-        this.contra = contra;
-    }
-
-    public String getCurp() {
-        return curp;
-    }
-
-    public void setCurp(String curp) {
-        this.curp = curp;
-    }
-
-    // Getters y Setters
-    // (puedes dejarlos igual, solo asegúrate de que edad sea Integer y no int)
-
-    
+    public String getContactoEmergencia() { return contactoEmergencia; }
+    public void setContactoEmergencia(String contactoEmergencia) { this.contactoEmergencia = contactoEmergencia; }
 }

@@ -17,6 +17,10 @@ public class Cita {
     @ManyToOne
     private Paciente paciente;
 
+    @Enumerated(EnumType.STRING)
+    private EstadoCita estado;
+
+
     private LocalDate fecha;
     private LocalTime hora;
     private String motivo;
@@ -55,6 +59,14 @@ public class Cita {
         this.motivo = motivo;
     }
 
+    public EstadoCita getEstado() {
+        return estado;
+    }
 
+    public void setEstado(EstadoCita estado) {
+        this.estado = estado;
+    }
+
+    
     
 }

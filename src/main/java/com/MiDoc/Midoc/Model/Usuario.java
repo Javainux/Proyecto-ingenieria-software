@@ -1,13 +1,23 @@
 package com.MiDoc.Midoc.Model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.Collection;
+import java.util.List;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Schema(description = "Entidad base que representa a un usuario dentro del sistema médico")
-public class Usuario {
+public class Usuario implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,11 +47,14 @@ public class Usuario {
     @Schema(description = "Número telefónico del usuario", example = "2281234567")
     private String numero;
 
+    @Schema(description = "URL de la foto de perfil del usuario", example = "https://midoc.com/perfiles/jareth.jpg")
+    private String foto_url;
+
     // Constructor vacío necesario para JPA
     public Usuario() {}
 
     // Constructor completo
-    public Usuario(Long id, String numero, String nombre, Integer edad, String contra, String rol, String correo) {
+    public Usuario(Long id, String numero, String nombre, Integer edad, String contra, String rol, String correo, String foto_url) {
         this.id = id;
         this.numero = numero;
         this.nombre = nombre;
@@ -49,6 +62,7 @@ public class Usuario {
         this.contra = contra;
         this.rol = rol;
         this.correo = correo;
+        this.foto_url = foto_url;
     }
 
     // Getters y Setters
@@ -75,4 +89,43 @@ public class Usuario {
 
     public String getNumero() { return numero; }
     public void setNumero(String numero) { this.numero = numero; }
+
+    public String getFoto_url() {
+        return foto_url;
+    }
+
+    public void setFoto_url(String foto_url) {
+        this.foto_url = foto_url;
+    }
+
+    @Override
+    public String getPassword() {
+        return contra;
+    }
+
+
+    @Override
+    public boolean isAccountNonExpired() { return true; }
+
+    @Override
+    public boolean isAccountNonLocked() { return true; }
+
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
+
+    @Override
+    public boolean isEnabled() { return true; }
+
+    @Override
+    public String getUsername() {
+        return correo; // Spring Security usará esto como "username"
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + rol));
+    }
+
+
+    
 }

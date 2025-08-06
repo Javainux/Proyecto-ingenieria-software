@@ -1,46 +1,53 @@
 package com.MiDoc.Midoc.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 
 @Entity
 @PrimaryKeyJoinColumn(name = "id")
 @Schema(description = "Entidad que representa a un paciente, hereda de Usuario")
 public class Paciente extends Usuario {
 
-    @Schema(description = "CURP del paciente", example = "GOPL920305HMCLNS08")
     @NotBlank(message = "El CURP no puede estar vacío")
+    @Schema(description = "CURP del paciente", example = "GOPL920305HMCLNS08")
     private String curp;
 
-    @Schema(description = "Dirección del paciente", example = "Av. Las Palmas #123, Banderilla, Ver.")
-    @NotBlank(message = "La dirección no puede estar vacía")
-    private String direccion;
+    @ElementCollection
+    @Schema(description = "Lista de alergias del paciente", example = "[\"Penicilina\", \"Mariscos\"]")
+    private List<String> alergias;
 
-    @Schema(description = "Síntomas reportados por el paciente", example = "Dolor de cabeza, fiebre, fatiga")
-    private String sintomas;
+    @ElementCollection
+    @Schema(description = "Enfermedades crónicas del paciente", example = "[\"Diabetes\", \"Hipertensión\"]")
+    private List<String> enfermedadesCronicas;
 
-    
+    @Schema(description = "Teléfono de contacto de emergencia", example = "2289876543")
+    private String contactoEmergencia;
+
     public Paciente() {
         super();
     }
 
-  
-    public Paciente(Long id, String curp, String direccion, String nombre, String correo, String rol, String contra, Integer edad, String numero, String sintomas) {
-        super(id, numero, nombre, edad, contra, rol, correo);
+    public Paciente(Long id, String numero, String nombre, Integer edad, String contra, String rol, String correo, String foto_url,
+                    String curp, List<String> alergias, List<String> enfermedadesCronicas, String contactoEmergencia) {
+        super(id, numero, nombre, edad, contra, rol, correo, foto_url);
         this.curp = curp;
-        this.direccion = direccion;
-        this.sintomas = sintomas;
+        this.alergias = alergias;
+        this.enfermedadesCronicas = enfermedadesCronicas;
+        this.contactoEmergencia = contactoEmergencia;
     }
 
-    
+    // Getters y setters
     public String getCurp() { return curp; }
     public void setCurp(String curp) { this.curp = curp; }
 
-    public String getDireccion() { return direccion; }
-    public void setDireccion(String direccion) { this.direccion = direccion; }
+    public List<String> getAlergias() { return alergias; }
+    public void setAlergias(List<String> alergias) { this.alergias = alergias; }
 
-    public String getSintomas() { return sintomas; }
-    public void setSintomas(String sintomas) { this.sintomas = sintomas; }
+    public List<String> getEnfermedadesCronicas() { return enfermedadesCronicas; }
+    public void setEnfermedadesCronicas(List<String> enfermedadesCronicas) { this.enfermedadesCronicas = enfermedadesCronicas; }
+
+    public String getContactoEmergencia() { return contactoEmergencia; }
+    public void setContactoEmergencia(String contactoEmergencia) { this.contactoEmergencia = contactoEmergencia; } 
 }

@@ -1,72 +1,75 @@
 package com.MiDoc.Midoc.Service;
 
-import com.MiDoc.Midoc.Exception.UsuarioInvalidDataException;
+import com.MiDoc.Midoc.DTO.UsuarioDTO;
+import com.MiDoc.Midoc.Mappers.UsuarioMapper;
 import com.MiDoc.Midoc.Model.Usuario;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
-import com.MiDoc.Midoc.Util.ValidarUsuario;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder; // 👈 Importa esto
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UsuarioService {
 
-    private final UsuarioRepository usuarioRepo;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioMapper usuarioMapper;
+    private final PasswordEncoder passwordEncoder; // 👈 Declara esto
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-
-    @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepo) {
-        this.usuarioRepo = usuarioRepo;
+    public UsuarioService(UsuarioRepository usuarioRepository,
+                          UsuarioMapper usuarioMapper,
+                          PasswordEncoder passwordEncoder) { // 👈 Inyéctalo aquí
+        this.usuarioRepository = usuarioRepository;
+        this.usuarioMapper = usuarioMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public List<Usuario> listarUsuarios() {
-        return usuarioRepo.findAll();
+    public List<UsuarioDTO> getAllUsuarios() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(usuarioMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Usuario registrarUsuario(Usuario usuario) {
-        if (usuario.getEdad() <= 0) {
-            throw new UsuarioInvalidDataException("La edad debe ser mayor a 0.");
-        } else if (usuario.getEdad() > 120) {
-            throw new UsuarioInvalidDataException("La edad no debe ser mayor a 120.");
-        }
-
-        if (usuarioRepo.findByCorreo(usuario.getCorreo()).isPresent()) {
-        throw new UsuarioInvalidDataException("El correo ya está registrado.");
-}
-
-        ValidarUsuario.Validar(usuario);
-        usuario.setContra(passwordEncoder.encode(usuario.getContra()));
-        return usuarioRepo.save(usuario);
+    public UsuarioDTO getUsuarioById(Long id) {
+        return usuarioRepository.findById(id)
+                .map(usuarioMapper::toDTO)
+                .orElse(null);
     }
 
-    public Optional<Usuario> obtenerUsuario(Long id) {
-        return usuarioRepo.findById(id);
+    public UsuarioDTO createUsuario(UsuarioDTO dto) {
+        Usuario usuario = usuarioMapper.toEntity(dto);
+
+        // 🔐 Aquí ciframos la contraseña antes de guardar
+        usuario.setContra(passwordEncoder.encode(dto.getContra()));
+
+        Usuario saved = usuarioRepository.save(usuario);
+        return usuarioMapper.toDTO(saved);
     }
 
-    public boolean eliminarUsuario(Long id) {
-        if (usuarioRepo.existsById(id)) {
-            usuarioRepo.deleteById(id);
-            return true;
-        }
-        return false;
+    public UsuarioDTO updateUsuario(Long id, UsuarioDTO dto) {
+        Usuario existing = usuarioRepository.findById(id).orElse(null);
+        if (existing == null) return null;
+
+        existing.setNombre(dto.getNombre());
+        existing.setEdad(dto.getEdad());
+        existing.setCorreo(dto.getCorreo());
+
+        // 🔐 También puedes cifrar aquí si se actualiza la contraseña
+        existing.setContra(passwordEncoder.encode(dto.getContra()));
+
+        existing.setRol(dto.getRol());
+        existing.setNumero(dto.getNumero());
+        existing.setFoto_url(dto.getFoto_url());
+
+        Usuario updated = usuarioRepository.save(existing);
+        return usuarioMapper.toDTO(updated);
     }
 
-    public Optional<Usuario> actualizarUsuario(Long id, Usuario datosActualizados) {
-        ValidarUsuario.Validar(datosActualizados);
-        return usuarioRepo.findById(id).map(usuario -> {
-            usuario.setNombre(datosActualizados.getNombre());
-            usuario.setEdad(datosActualizados.getEdad());
-            usuario.setCorreo(datosActualizados.getCorreo());
-            usuario.setContra(datosActualizados.getContra());
-            usuario.setRol(datosActualizados.getRol());
-            return usuarioRepo.save(usuario);
-        });
+    public void deleteUsuario(Long id) {
+        usuarioRepository.deleteById(id);
     }
 }

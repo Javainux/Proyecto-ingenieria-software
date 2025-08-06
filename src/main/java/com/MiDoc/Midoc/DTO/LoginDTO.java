@@ -1,16 +1,16 @@
 package com.MiDoc.Midoc.DTO;
 
 public class LoginDTO {
-    private String usuario;
+    private String correo;
     private String password;
 
     // Getters y setters
-    public String getUsuario() {
-        return usuario;
+    public String getCorreo() {
+        return correo;
     }
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
+    public void setCorreo(String correo) {
+        this.correo = correo;
     }
 
     public String getPassword() {

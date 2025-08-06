@@ -1,8 +1,5 @@
 package com.MiDoc.Midoc.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.MiDoc.Midoc.DTO.CitaDTO;
 import com.MiDoc.Midoc.Mappers.CitaMapper;
 import com.MiDoc.Midoc.Model.Cita;
@@ -12,11 +9,17 @@ import com.MiDoc.Midoc.Repository.CitaRepository;
 import com.MiDoc.Midoc.Repository.DoctorRepository;
 import com.MiDoc.Midoc.Repository.PacienteRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class CitaService {
 
     @Autowired
-    private CitaRepository citaRepository;
+    private CitaRepository citaRepo;
 
     @Autowired
     private DoctorRepository doctorRepo;
@@ -24,16 +27,35 @@ public class CitaService {
     @Autowired
     private PacienteRepository pacienteRepo;
 
-    public Cita crearCita(CitaDTO citaDTO) {
-        Doctor doctor = doctorRepo.findById(citaDTO.getDoctorId()).orElseThrow();
-        Paciente paciente = pacienteRepo.findById(citaDTO.getPacienteId()).orElseThrow();
+    public List<CitaDTO> getAllCitas() {
+        return citaRepo.findAll()
+            .stream()
+            .map(CitaMapper::toDTO)
+            .collect(Collectors.toList());
+    }
 
-        boolean conflicto = citaRepository.existsByDoctorIdAndFechaAndHora(
-            doctor.getId(), citaDTO.getFecha(), citaDTO.getHora()
-        );
+    public CitaDTO createCita(CitaDTO dto) {
+        Doctor doctor = doctorRepo.findById(dto.getDoctorId()).orElseThrow();
+        Paciente paciente = pacienteRepo.findById(dto.getPacienteId()).orElseThrow();
+        Cita cita = CitaMapper.toEntity(dto, doctor, paciente);
+        return CitaMapper.toDTO(citaRepo.save(cita));
+    }
 
-        if (conflicto) throw new IllegalStateException("El doctor ya tiene una cita en ese horario.");
+    public CitaDTO getCitaById(Long id) {
+        return citaRepo.findById(id).map(CitaMapper::toDTO).orElse(null);
+    }
 
-        return citaRepository.save(CitaMapper.toEntity(citaDTO, doctor, paciente));
+    public CitaDTO updateCita(Long id, CitaDTO dto) {
+        return citaRepo.findById(id).map(cita -> {
+            cita.setFecha(dto.getFecha());
+            cita.setHora(dto.getHora());
+            cita.setMotivo(dto.getMotivo());
+            cita.setEstado(dto.getEstado());
+            return CitaMapper.toDTO(citaRepo.save(cita));
+        }).orElse(null);
+    }
+
+    public void deleteCita(Long id) {
+        citaRepo.deleteById(id);
     }
 }
