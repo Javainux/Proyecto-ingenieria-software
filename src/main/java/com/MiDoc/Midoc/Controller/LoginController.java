@@ -18,10 +18,15 @@ import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/cuenta")
+@CrossOrigin(
+    origins = "*", // Cambia esto por tu dominio en producción
+    methods = {RequestMethod.POST, RequestMethod.GET, RequestMethod.OPTIONS},
+    allowedHeaders = "*"
+)
 public class LoginController {
 
     @Autowired
-    private AuthenticationManager authManager; // ✅ Inyección correcta
+    private AuthenticationManager authManager;
 
     @Autowired
     private UsuarioRepository usuarioRepo;
@@ -30,25 +35,29 @@ public class LoginController {
     private BCryptPasswordEncoder encoder;
 
     @PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
-    try {
-        Usuario usuario = usuarioRepo.findByCorreo(loginDTO.getCorreo())
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
+        try {
+            Usuario usuario = usuarioRepo.findByCorreo(loginDTO.getCorreo())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        Authentication auth = authManager.authenticate(
-            new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
-        );
+            Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
+            );
 
-        // 👇 Guardar el usuario en la sesión
-        request.getSession(true).setAttribute("usuario", usuario);
+            request.getSession(true).setAttribute("usuario", usuario);
 
-        return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
 
-    } catch (Exception e) {
-        return ResponseEntity.status(401).body("Credenciales inválidas");
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Credenciales inválidas");
+        }
     }
-}
 
+    // 👇 Manejo explícito del OPTIONS para evitar 502 en Railway
+    @RequestMapping(value = "/login", method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> handleOptions() {
+        return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
+    }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
@@ -69,8 +78,6 @@ public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletReques
             return ResponseEntity.status(401).body("No autenticado");
         }
     }
-
-
 
     @GetMapping("/test-password")
     public boolean testPassword() {
