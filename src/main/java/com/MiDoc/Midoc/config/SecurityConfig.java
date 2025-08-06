@@ -53,22 +53,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
 
-        // 👇 Usa setAllowedOrigins en lugar de setAllowedOriginPatterns
-        configuration.setAllowedOrigins(List.of("http://localhost:*")); // Ajusta según tu frontend
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true); // 👈 Necesario para enviar cookies
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        System.out.println("✅ CORS configurado para origen: http://localhost:*");
-
-        return source;
+    // 👇 Origen dinámico desde variable de entorno
+    String frontendOrigin = System.getenv("FRONTEND_ORIGIN");
+    if (frontendOrigin == null || frontendOrigin.isBlank()) {
+        frontendOrigin = "http://localhost:5173"; // valor por defecto
     }
+
+    configuration.setAllowedOrigins(List.of(frontendOrigin));
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+    configuration.setExposedHeaders(List.of("Set-Cookie"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+
+    System.out.println("✅ CORS configurado para origen: " + frontendOrigin);
+
+    return source;
+}
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
