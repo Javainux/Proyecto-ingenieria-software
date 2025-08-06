@@ -29,10 +29,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors() // 👈 Activamos CORS explícitamente
+            .and()
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/", "/cuenta/login").permitAll() // 👈 Se agregó "/" aquí
+                .requestMatchers("/", "/cuenta/login").permitAll()
                 .anyRequest().authenticated()
             );
 
@@ -45,10 +47,11 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                    .allowedOrigins("*")
+                    .allowedOrigins("http://localhost:3000") // 👈 Cambia esto si usas otro puerto
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                    .allowedHeaders("*");
+                    .allowedHeaders("*"); 
             }
         };
     }
 }
+
