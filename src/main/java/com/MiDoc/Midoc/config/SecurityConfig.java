@@ -57,7 +57,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 👇 Usa setAllowedOrigins en lugar de setAllowedOriginPatterns
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Ajusta según tu frontend
+        configuration.setAllowedOrigins(List.of("http://localhost:*")); // Ajusta según tu frontend
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true); // 👈 Necesario para enviar cookies
@@ -65,7 +65,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
-        System.out.println("✅ CORS configurado para origen: http://localhost:3000");
+        System.out.println("✅ CORS configurado para origen: http://localhost:*");
 
         return source;
     }
