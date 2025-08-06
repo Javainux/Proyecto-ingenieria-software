@@ -28,37 +28,37 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors()
-        .and()
-        .csrf().disable()
-        .formLogin().disable()
-        .httpBasic().disable()
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .requestMatchers(
-                "/", "/cuenta/login", "/cuenta/logout", "/cuenta/crear",
-                "/usuarios/**", "/citas/**", "/doctores/**",
-                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-                "/login", "/webhook", "/api/metodos-pago/**"
-            ).permitAll()
-            .anyRequest().permitAll()
-        );
+        http
+            .cors()
+            .and()
+            .csrf().disable()
+            .formLogin().disable()
+            .httpBasic().disable()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(
+                    "/", "/cuenta/login", "/cuenta/logout", "/cuenta/crear",
+                    "/usuarios/**", "/citas/**", "/doctores/**",
+                    "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                    "/login", "/webhook", "/api/metodos-pago/**"
+                ).permitAll()
+                .anyRequest().permitAll()
+            );
 
-    // 👇 Esta línea activa el uso de BCrypt en el login
-    http.authenticationProvider(authenticationProvider());
+        http.authenticationProvider(authenticationProvider());
 
-    return http.build();
-}
-
+        return http.build();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
+
+        // 👇 Reemplaza esta URL con la de tu frontend si es diferente
+        configuration.setAllowedOrigins(List.of("http://localhost:63576")); 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true); // Necesario si usas cookies o tokens
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -71,14 +71,13 @@ public class SecurityConfig {
     }
 
     @Bean
-public AuthenticationManager authenticationManager() {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-    provider.setUserDetailsService(userDetailsService);
-    provider.setPasswordEncoder(passwordEncoder());
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
 
-    return new ProviderManager(provider);
-}
-
+        return new ProviderManager(provider);
+    }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
