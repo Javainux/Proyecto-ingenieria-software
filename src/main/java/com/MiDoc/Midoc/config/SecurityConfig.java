@@ -54,16 +54,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 👇 Reemplaza esta URL con la de tu frontend si es diferente
-        configuration.setAllowedOrigins(List.of("http://localhost:63576")); 
+        // 👇 Origen local del frontend
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setAllowCredentials(true); // Necesario si usas cookies o tokens
+        configuration.setAllowCredentials(true);
+
+        // 👇 Log para confirmar que se aplica en producción
+        System.out.println("✅ CORS configurado para origen: http://localhost:*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
