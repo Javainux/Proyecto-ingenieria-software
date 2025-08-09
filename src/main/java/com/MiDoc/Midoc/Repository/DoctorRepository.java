@@ -6,6 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
-    // Aquí puedes agregar métodos personalizados si lo necesitas, por ejemplo:
-    // List<Doctor> findByEspecialidad(String especialidad);
+    
 }
