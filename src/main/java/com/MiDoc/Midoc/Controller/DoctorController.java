@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +24,16 @@ public class DoctorController {
 
     @Operation(summary = "Listar todos los doctores")
     @GetMapping
-    public List<DoctorDTO> listarDoctores() {
-        return doctorService.getAllDoctors();
+public ResponseEntity<?> listarDoctores() {
+    try {
+        List<DoctorDTO> doctores = doctorService.getAllDoctors();
+        return ResponseEntity.ok(doctores);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                             .body("Error al obtener doctores: " + e.getMessage());
     }
+}
+
 
     @Operation(summary = "Registrar un nuevo doctor")
     @PostMapping
