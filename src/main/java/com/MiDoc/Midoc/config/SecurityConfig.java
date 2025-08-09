@@ -40,7 +40,10 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", 
                     "/cuenta/login", 
-                    "/api/**", 
+                    "/cuenta/registro",
+                    "/ping",
+                    "/favicon.ico",
+                    "/api/**",
                     "/swagger-ui/**", 
                     "/v3/api-docs/**"
                 ).permitAll()
@@ -54,7 +57,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Permitir acceso desde frontend local y desplegado
         configuration.setAllowedOrigins(List.of(
             "http://localhost:3000",
             "https://midoc-frontend.netlify.app"
