@@ -15,7 +15,7 @@ import java.util.List;
 
 @Tag(name = "Doctores", description = "Operaciones CRUD para doctores")
 @RestController
-@RequestMapping("/doctores")
+@RequestMapping("/api/doctores")
 public class DoctorController {
 
     @Autowired
@@ -55,4 +55,11 @@ public class DoctorController {
         doctorService.deleteDoctor(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Listar doctores destacados")
+@GetMapping("/destacados")
+public List<DoctorDTO> listarDestacados() {
+    return doctorService.getAllDoctors();
+}
+
 }
