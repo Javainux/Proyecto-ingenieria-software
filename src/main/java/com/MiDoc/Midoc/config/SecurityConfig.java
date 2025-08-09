@@ -38,9 +38,11 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+                // Permitir todas las peticiones OPTIONS (preflight)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/doctores", "/api/doctores/", "/api/doctores/**").permitAll()
-                .requestMatchers("/cuenta/**", "/ping", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // Permitir acceso público a toda la API durante desarrollo
+                .requestMatchers("/api/**", "/cuenta/**", "/ping", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
             )
             .cors();
