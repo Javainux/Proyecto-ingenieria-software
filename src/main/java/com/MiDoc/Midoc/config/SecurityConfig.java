@@ -32,14 +32,15 @@ public class SecurityConfig {
     @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .requestMatchers("/api/doctores", "/api/doctores/", "/api/doctores/**").permitAll()
-            .requestMatchers("/cuenta/**", "/ping", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            .anyRequest().authenticated()
-        )
-        .cors(); // ← ¡Esto al final!
+    .csrf(csrf -> csrf.disable())
+    .authorizeHttpRequests(auth -> auth
+        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/doctores", "/api/doctores/", "/api/doctores/**").permitAll()
+        .requestMatchers("/cuenta/**", "/ping", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+        .anyRequest().authenticated()
+    )
+    .cors();
+
 
     return http.build();
 }
