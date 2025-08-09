@@ -34,9 +34,9 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                // 📝 Commit: Se cambia a IF_REQUIRED para permitir sesiones en login
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
-            // 🔹 Permitir TODAS las rutas temporalmente
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
             )
