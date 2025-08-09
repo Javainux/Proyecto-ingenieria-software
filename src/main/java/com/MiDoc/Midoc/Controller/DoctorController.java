@@ -8,11 +8,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Doctores", description = "Operaciones CRUD para doctores")
 @RestController
@@ -25,13 +25,15 @@ public class DoctorController {
     @Operation(summary = "Listar todos los doctores")
     @GetMapping
 public ResponseEntity<?> listarDoctores() {
-    try {
-        List<DoctorDTO> doctores = doctorService.getAllDoctors();
-        return ResponseEntity.ok(doctores);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                             .body("Error al obtener doctores: " + e.getMessage());
-    }
+    System.out.println("📥 Petición recibida en /api/doctores");
+    return ResponseEntity.ok(List.of(
+        Map.of(
+            "nombre", "Dr. Prueba",
+            "especialidad", "Cardiología",
+            "calificacion", 4.9,
+            "direccion", "Calle Falsa 123"
+        )
+    ));
 }
 
 
