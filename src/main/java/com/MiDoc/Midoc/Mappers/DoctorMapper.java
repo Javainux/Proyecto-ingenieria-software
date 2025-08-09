@@ -8,12 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class DoctorMapper {
 
-    private final UsuarioMapper usuarioMapper;
-
-    @Autowired
-    public DoctorMapper(UsuarioMapper usuarioMapper) {
-        this.usuarioMapper = usuarioMapper;
-    }
+    
+    
 
     public DoctorDTO toDTO(Doctor doctor) {
         if (doctor == null) return null;
