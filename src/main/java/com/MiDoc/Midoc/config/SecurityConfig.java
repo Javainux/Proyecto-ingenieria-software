@@ -30,27 +30,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .cors().and() // Usa el bean corsConfigurationSource automáticamente
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(
-                    "/cuenta/login", 
-                    "/cuenta/registro",
-                    "/ping",
-                    "/favicon.ico",
-                    "/swagger-ui/**", 
-                    "/v3/api-docs/**",
-                    "/api/doctores/**"
-                ).permitAll()
-                .requestMatchers("/api/**").permitAll()
-                .anyRequest().authenticated()
-            );
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers("/api/doctores", "/api/doctores/", "/api/doctores/**").permitAll()
+            .requestMatchers("/cuenta/**", "/ping", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            .anyRequest().authenticated()
+        )
+        .cors(); // ← ¡Esto al final!
 
-        return http.build();
-    }
+    return http.build();
+}
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
