@@ -47,7 +47,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
                 "/api/doctores",
                 "/api/doctores/",
                 "/api/doctores/**"
-            ).permitAll()
+            ).permitAll().requestMatchers("/api/**").permitAll()
+
             .anyRequest().authenticated()
         );
 
