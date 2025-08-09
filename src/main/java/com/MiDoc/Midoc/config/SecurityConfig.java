@@ -30,47 +30,43 @@ public class SecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors().configurationSource(corsConfigurationSource())
-        .and()
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .requestMatchers(
-                "/cuenta/login", 
-                "/cuenta/registro",
-                "/ping",
-                "/favicon.ico",
-                "/swagger-ui/**", 
-                "/v3/api-docs/**",
-                "/api/doctores",
-                "/api/doctores/",
-                "/api/doctores/**"
-            ).permitAll().requestMatchers("/api/**").permitAll()
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors().and() // Usa el bean corsConfigurationSource automáticamente
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(
+                    "/cuenta/login", 
+                    "/cuenta/registro",
+                    "/ping",
+                    "/favicon.ico",
+                    "/swagger-ui/**", 
+                    "/v3/api-docs/**",
+                    "/api/doctores/**"
+                ).permitAll()
+                .requestMatchers("/api/**").permitAll()
+                .anyRequest().authenticated()
+            );
 
-            .anyRequest().authenticated()
-        );
-
-    return http.build();
-}
-
+        return http.build();
+    }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    configuration.setAllowedOrigins(List.of(
-        "http://localhost:3000",
-        "https://midoc-frontend.netlify.app"
-    ));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
-    configuration.setAllowCredentials(false); // ← ¡Esto es clave si no usas tokens!
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:3000",
+            "http://127.0.0.1:5500", // ← útil si usas Live Server
+            "https://midoc-frontend.netlify.app"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(false); // ← Mantén en false si no usas cookies o tokens en frontend
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
