@@ -30,31 +30,30 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .cors().configurationSource(corsConfigurationSource())
-            .and()
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(
-    "/cuenta/login", 
-    "/cuenta/registro",
-    "/ping",
-    "/favicon.ico",
-    "/swagger-ui/**", 
-    "/v3/api-docs/**",
-    "/api/doctores",
-    "/api/doctores/",
-    "/api/doctores/**"
-).permitAll()
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .cors().configurationSource(corsConfigurationSource())
+        .and()
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers(
+                "/cuenta/login", 
+                "/cuenta/registro",
+                "/ping",
+                "/favicon.ico",
+                "/swagger-ui/**", 
+                "/v3/api-docs/**",
+                "/api/doctores",
+                "/api/doctores/",
+                "/api/doctores/**"
+            ).permitAll()
+            .anyRequest().authenticated()
+        );
 
-                .requestMatchers("/api/**").permitAll()
-                .anyRequest().authenticated()
-            );
+    return http.build();
+}
 
-        return http.build();
-    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
