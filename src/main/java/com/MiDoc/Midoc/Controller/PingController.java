@@ -11,4 +11,9 @@ public class PingController {
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("pong 🎯");
     }
+
+    @GetMapping("/")
+    public ResponseEntity<String> home() {
+        return ResponseEntity.ok("Backend de MiDoc corriendo 🚀");
+    }
 }
