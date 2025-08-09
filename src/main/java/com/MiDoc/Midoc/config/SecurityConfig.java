@@ -38,17 +38,17 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
-                    "/cuenta/login", 
-                    "/cuenta/registro",
-                    "/ping",
-                    "/favicon.ico",
-                    "/swagger-ui/**", 
-                    "/v3/api-docs/**",
-                    "/api/doctores",
-                    "/api/doctores/",
-                    "/api/doctores/ping",
-                    "/api/doctores/**"
-                ).permitAll()
+    "/cuenta/login", 
+    "/cuenta/registro",
+    "/ping",
+    "/favicon.ico",
+    "/swagger-ui/**", 
+    "/v3/api-docs/**",
+    "/api/doctores",
+    "/api/doctores/",
+    "/api/doctores/**"
+).permitAll()
+
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().authenticated()
             );
