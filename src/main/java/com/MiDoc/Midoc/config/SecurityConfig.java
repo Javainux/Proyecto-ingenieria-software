@@ -36,19 +36,19 @@ public class SecurityConfig {
             .and()
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(
-                    "/", 
-                    "/cuenta/login", 
-                    "/cuenta/registro",
-                    "/ping",
-                    "/favicon.ico",
-                    "/api/**",
-                    "/swagger-ui/**", 
-                    "/v3/api-docs/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            );
+    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+    .requestMatchers(
+        "/cuenta/login", 
+        "/cuenta/registro",
+        "/ping",
+        "/favicon.ico",
+        "/swagger-ui/**", 
+        "/v3/api-docs/**",
+        "/api/doctores/**"
+    ).permitAll()
+    .requestMatchers("/api/**").permitAll() // si tienes otras rutas públicas
+    .anyRequest().authenticated()
+);
 
         return http.build();
     }
