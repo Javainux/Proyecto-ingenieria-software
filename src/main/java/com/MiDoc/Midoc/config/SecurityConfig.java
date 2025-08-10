@@ -1,5 +1,6 @@
 package com.MiDoc.Midoc.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +13,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.MiDoc.Midoc.Service.UserDetailsServiceImpl;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -31,25 +34,29 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService; // 👈 inyecta tu servicio
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // ✅ crea sesión si se necesita
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/cuenta/perfil").authenticated() // ✅ requiere sesión
+                .requestMatchers("/cuenta/perfil").authenticated()
                 .anyRequest().permitAll()
             )
             .cors().and()
             .formLogin(form -> form
-                .loginProcessingUrl("/cuenta/login") // ✅ coincide con el frontend
+                .loginProcessingUrl("/cuenta/login")
                 .permitAll()
                 .failureHandler((request, response, exception) -> {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login failed");
                 })
-            );
+            )
+            .userDetailsService(userDetailsService); // 👈 registra el servicio aquí
 
         return http.build();
     }
