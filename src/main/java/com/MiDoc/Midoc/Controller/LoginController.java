@@ -60,7 +60,7 @@ public class LoginController {
         return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
     }
 
-    @RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
+@RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
 public ResponseEntity<Void> handleOptionsRegistro() {
     return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
 }
@@ -76,17 +76,20 @@ public ResponseEntity<Void> handleOptionsRegistro() {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<?> registro(@RequestBody RegistroDTO dto) {
-        try {
-            if (usuarioRepo.findByCorreo(dto.getCorreo()).isPresent()) {
-                return ResponseEntity.status(409).body("El correo ya está registrado");
+public ResponseEntity<?> registro(@RequestBody RegistroDTO dto) {
+    try {
+        if (usuarioRepo.findByCorreo(dto.getCorreo()).isPresent()) {
+            return ResponseEntity.status(409).body("El correo ya está registrado");
         }
 
         Usuario nuevoUsuario = new Usuario();
         nuevoUsuario.setNombre(dto.getNombre());
+        nuevoUsuario.setEdad(dto.getEdad());
         nuevoUsuario.setCorreo(dto.getCorreo());
-        nuevoUsuario.setContra(encoder.encode(dto.getPassword()));
-        nuevoUsuario.setRol(dto.getRol().toUpperCase()); // Normaliza el rol
+        nuevoUsuario.setContra(encoder.encode(dto.getPassword())); // ← sigue usando "contra"
+        nuevoUsuario.setRol(dto.getRol().toUpperCase());
+        nuevoUsuario.setNumero(dto.getNumero());
+        nuevoUsuario.setFoto_url(dto.getFoto_url());
 
         usuarioRepo.save(nuevoUsuario);
 

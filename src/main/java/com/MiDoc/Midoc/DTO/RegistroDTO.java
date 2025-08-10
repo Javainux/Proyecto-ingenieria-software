@@ -5,7 +5,9 @@ public class RegistroDTO {
     private String correo;
     private String password;
     private String rol;
-
+    private String numero;
+    private String foto_url;
+    private int edad;
     // Getters y setters
     public String getNombre() {
         return nombre;
@@ -38,4 +40,30 @@ public class RegistroDTO {
     public void setRol(String rol) {
         this.rol = rol;
     }
+
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
+
+    public String getFoto_url() {
+        return foto_url;
+    }
+
+    public void setFoto_url(String foto_url) {
+        this.foto_url = foto_url;
+    }
+
+    public int getEdad() {
+        return edad;
+    }
+
+    public void setEdad(int edad) {
+        this.edad = edad;
+    }
+
+    
 }
