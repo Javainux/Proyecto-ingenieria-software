@@ -13,6 +13,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.List;
 
 @Configuration
@@ -30,20 +32,33 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                // 📝 Commit: Se cambia a IF_REQUIRED para permitir sesiones en login
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            )
-            .cors();
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/cuenta/perfil").authenticated()
+            .anyRequest().permitAll()
+        )
+        .cors().and()
+        .formLogin(form -> form
+            .loginProcessingUrl("/login")
+            .successHandler((request, response, authentication) -> {
+                String sessionId = request.getSession().getId();
+                response.setHeader("Set-Cookie",
+                    "JSESSIONID=" + sessionId +
+                    "; Path=/; HttpOnly; Secure; SameSite=None");
+                response.setStatus(HttpServletResponse.SC_OK);
+            })
+            .failureHandler((request, response, exception) -> {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login failed");
+            })
+        );
 
-        return http.build();
-    }
+    return http.build();
+}
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
