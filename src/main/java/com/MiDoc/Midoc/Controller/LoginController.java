@@ -60,6 +60,12 @@ public class LoginController {
         return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
     }
 
+    @RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
+public ResponseEntity<Void> handleOptionsRegistro() {
+    return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
+}
+
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
