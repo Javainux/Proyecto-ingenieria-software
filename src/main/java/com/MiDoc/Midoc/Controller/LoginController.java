@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import com.MiDoc.Midoc.DTO.LoginDTO;
+import com.MiDoc.Midoc.DTO.RegistroDTO;
 import com.MiDoc.Midoc.DTO.UsuarioPerfilDTO;
 import com.MiDoc.Midoc.Model.Usuario;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
@@ -67,6 +68,28 @@ public class LoginController {
         }
         return ResponseEntity.ok("Sesión cerrada correctamente");
     }
+
+    @PostMapping("/registro")
+    public ResponseEntity<?> registro(@RequestBody RegistroDTO dto) {
+        try {
+            if (usuarioRepo.findByCorreo(dto.getCorreo()).isPresent()) {
+                return ResponseEntity.status(409).body("El correo ya está registrado");
+        }
+
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setNombre(dto.getNombre());
+        nuevoUsuario.setCorreo(dto.getCorreo());
+        nuevoUsuario.setContra(encoder.encode(dto.getPassword()));
+        nuevoUsuario.setRol(dto.getRol().toUpperCase()); // Normaliza el rol
+
+        usuarioRepo.save(nuevoUsuario);
+
+        return ResponseEntity.ok(new UsuarioPerfilDTO(nuevoUsuario));
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Error al registrar usuario");
+    }
+}
+
 
     @GetMapping("/perfil")
     public ResponseEntity<?> perfil(HttpServletRequest request) {
