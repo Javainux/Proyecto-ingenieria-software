@@ -32,26 +32,27 @@ public class SecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-        )
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/cuenta/perfil").authenticated()
-            .anyRequest().permitAll()
-        )
-        .cors().and()
-        .formLogin(form -> form
-            .loginProcessingUrl("/login")
-            .failureHandler((request, response, exception) -> {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login failed");
-            })
-        );
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // ✅ crea sesión si se necesita
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/cuenta/perfil").authenticated() // ✅ requiere sesión
+                .anyRequest().permitAll()
+            )
+            .cors().and()
+            .formLogin(form -> form
+                .loginProcessingUrl("/cuenta/login") // ✅ coincide con el frontend
+                .permitAll()
+                .failureHandler((request, response, exception) -> {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login failed");
+                })
+            );
 
-    return http.build();
-}
+        return http.build();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -64,7 +65,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // ✅ permite enviar y recibir cookies
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
