@@ -228,7 +228,7 @@ public ResponseEntity<?> registroSinFoto(@RequestBody RegistroDTO dto) {
             doctor.setDescripcion(dto.getDescripcion());
             doctor.setDireccion(dto.getDireccion());
             doctor.setCostoCita(dto.getCostoCita() != null ? dto.getCostoCita() : 0.0);
-            doctor.setOtras_especialidades(dto.getOtras_especialidades() != null ? dto.getOtras_especialidades() : List.of());
+            doctor.setOtras_especialidades(dto.getOtrasEspecialidades() != null ? dto.getOtrasEspecialidades() : List.of());
             doctor.setFechasDisponibles(dto.getFechasDisponibles() != null ? dto.getFechasDisponibles() : List.of());
 
             doctorRepo.save(doctor);

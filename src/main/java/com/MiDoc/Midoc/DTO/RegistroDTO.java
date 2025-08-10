@@ -26,7 +26,8 @@ public class RegistroDTO {
     private Double costoCita;
     private Double latitud;
     private Double longitud;
-    private List<String> otras_especialidades;
+    private List<String> otrasEspecialidades;
+
     private List<String> fechasDisponibles;
 
     // Getters y setters
@@ -84,8 +85,8 @@ public class RegistroDTO {
     public Double getLongitud() { return longitud; }
     public void setLongitud(Double longitud) { this.longitud = longitud; }
 
-    public List<String> getOtras_especialidades() { return otras_especialidades; }
-    public void setOtras_especialidades(List<String> otras_especialidades) { this.otras_especialidades = otras_especialidades; }
+    public List<String> getOtrasEspecialidades() { return otrasEspecialidades; }
+public void setOtrasEspecialidades(List<String> otrasEspecialidades) { this.otrasEspecialidades = otrasEspecialidades; }
 
     public List<String> getFechasDisponibles() { return fechasDisponibles; }
     public void setFechasDisponibles(List<String> fechasDisponibles) { this.fechasDisponibles = fechasDisponibles; }
