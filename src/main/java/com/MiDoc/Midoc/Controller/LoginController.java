@@ -266,48 +266,58 @@ private UsuarioService usuarioService;
  @GetMapping("/perfil")
 public ResponseEntity<?> perfil(Authentication authentication) {
     try {
+        System.out.println("🔍 Iniciando petición a /perfil");
+
         if (authentication == null || !authentication.isAuthenticated()) {
+            System.out.println("⚠️ Usuario no autenticado");
             return ResponseEntity.status(401).body("No autenticado");
         }
 
         String correo = authentication.getName();
-        System.out.println("Correo autenticado: " + correo);
+        System.out.println("📧 Correo autenticado: " + correo);
 
         Usuario usuario = usuarioService.obtenerEntidadPorCorreo(correo);
         if (usuario == null) {
-            System.out.println("Usuario no encontrado para el correo: " + correo);
+            System.out.println("❌ Usuario no encontrado en BD para el correo: " + correo);
             return ResponseEntity.status(404).body("Usuario no encontrado");
         }
 
-        System.out.println("Usuario encontrado: " + usuario.getId() + " - Rol: " + usuario.getRol());
+        System.out.println("✅ Usuario encontrado: ID=" + usuario.getId() + ", Rol=" + usuario.getRol());
+        System.out.println("🧬 Tipo de clase: " + usuario.getClass().getName());
 
         switch (usuario.getRol()) {
             case "PACIENTE":
+                System.out.println("🔎 Buscando paciente con ID: " + usuario.getId());
                 Paciente paciente = pacienteRepo.findById(usuario.getId()).orElse(null);
                 if (paciente == null) {
-                    System.out.println("Paciente no encontrado con ID: " + usuario.getId());
+                    System.out.println("❌ Paciente no encontrado");
                     return ResponseEntity.status(404).body("Paciente no encontrado");
                 }
+                System.out.println("✅ Paciente encontrado: " + paciente.getNombre());
                 return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
 
             case "DOCTOR":
+                System.out.println("🔎 Buscando doctor con ID: " + usuario.getId());
                 Doctor doctor = doctorRepo.findById(usuario.getId()).orElse(null);
                 if (doctor == null) {
-                    System.out.println("Doctor no encontrado con ID: " + usuario.getId());
+                    System.out.println("❌ Doctor no encontrado");
                     return ResponseEntity.status(404).body("Doctor no encontrado");
                 }
+                System.out.println("✅ Doctor encontrado: " + doctor.getNombre());
                 return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
 
             default:
-                System.out.println("Rol desconocido: " + usuario.getRol());
+                System.out.println("⚠️ Rol desconocido o genérico: " + usuario.getRol());
                 return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
         }
 
     } catch (Exception e) {
+        System.out.println("🔥 Excepción atrapada en /perfil:");
         e.printStackTrace(); // 👈 Esto lo verás en Railway logs
         return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
     }
 }
+
 
 
 
