@@ -263,34 +263,49 @@ public ResponseEntity<?> registroSinFoto(@RequestBody RegistroDTO dto) {
 private UsuarioService usuarioService;
 
 
-  @GetMapping("/perfil")
+ @GetMapping("/perfil")
 public ResponseEntity<?> perfil(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-        return ResponseEntity.status(401).body("No autenticado");
-    }
+    try {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("No autenticado");
+        }
 
-    String correo = authentication.getName();
+        String correo = authentication.getName();
+        System.out.println("Correo autenticado: " + correo);
 
-    // 👇 Aquí debe usarse el método que devuelve el modelo
-    Usuario usuario = usuarioService.obtenerEntidadPorCorreo(correo); // ✅
+        Usuario usuario = usuarioService.obtenerEntidadPorCorreo(correo);
+        if (usuario == null) {
+            System.out.println("Usuario no encontrado para el correo: " + correo);
+            return ResponseEntity.status(404).body("Usuario no encontrado");
+        }
 
-    if (usuario == null) {
-        return ResponseEntity.status(404).body("Usuario no encontrado");
-    }
+        System.out.println("Usuario encontrado: " + usuario.getId() + " - Rol: " + usuario.getRol());
 
-    switch (usuario.getRol()) {
-        case "PACIENTE":
-            Paciente paciente = pacienteRepo.findById(usuario.getId())
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-            return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
+        switch (usuario.getRol()) {
+            case "PACIENTE":
+                Paciente paciente = pacienteRepo.findById(usuario.getId()).orElse(null);
+                if (paciente == null) {
+                    System.out.println("Paciente no encontrado con ID: " + usuario.getId());
+                    return ResponseEntity.status(404).body("Paciente no encontrado");
+                }
+                return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
 
-        case "DOCTOR":
-            Doctor doctor = doctorRepo.findById(usuario.getId())
-                .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
-            return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
+            case "DOCTOR":
+                Doctor doctor = doctorRepo.findById(usuario.getId()).orElse(null);
+                if (doctor == null) {
+                    System.out.println("Doctor no encontrado con ID: " + usuario.getId());
+                    return ResponseEntity.status(404).body("Doctor no encontrado");
+                }
+                return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
 
-        default:
-            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+            default:
+                System.out.println("Rol desconocido: " + usuario.getRol());
+                return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace(); // 👈 Esto lo verás en Railway logs
+        return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
     }
 }
 
