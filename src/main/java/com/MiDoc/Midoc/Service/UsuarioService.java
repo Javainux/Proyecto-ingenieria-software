@@ -2,6 +2,8 @@ package com.MiDoc.Midoc.Service;
 
 import com.MiDoc.Midoc.DTO.UsuarioDTO;
 import com.MiDoc.Midoc.Mappers.UsuarioMapper;
+import com.MiDoc.Midoc.Model.Doctor;
+import com.MiDoc.Midoc.Model.Paciente;
 import com.MiDoc.Midoc.Model.Usuario;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,15 +42,38 @@ public class UsuarioService {
                 .orElse(null);
     }
 
-    public UsuarioDTO createUsuario(UsuarioDTO dto) {
-        Usuario usuario = usuarioMapper.toEntity(dto);
+   public UsuarioDTO createUsuario(UsuarioDTO dto) {
+    Usuario usuario;
 
-        // 🔐 Aquí ciframos la contraseña antes de guardar
-        usuario.setContra(passwordEncoder.encode(dto.getContra()));
-
-        Usuario saved = usuarioRepository.save(usuario);
-        return usuarioMapper.toDTO(saved);
+    switch (dto.getRol().toLowerCase()) {
+        case "doctor":
+            usuario = new Doctor(); // o usar un DoctorMapper si tienes
+            break;
+        case "paciente":
+            usuario = new Paciente();
+            break;
+        default:
+            throw new IllegalArgumentException("Rol no reconocido: " + dto.getRol());
     }
+
+    // Asignar campos comunes
+    usuario.setNombre(dto.getNombre());
+    usuario.setCorreo(dto.getCorreo());
+    usuario.setEdad(dto.getEdad());
+    usuario.setNumero(dto.getNumero());
+    usuario.setFoto_url(dto.getFoto_url());
+    usuario.setRol(dto.getRol());
+
+    // 🔐 Encriptar contraseña
+    if (dto.getContra() == null || dto.getContra().isBlank()) {
+        throw new IllegalArgumentException("La contraseña no puede estar vacía");
+    }
+    usuario.setContra(passwordEncoder.encode(dto.getContra()));
+
+    Usuario saved = usuarioRepository.save(usuario);
+    return usuarioMapper.toDTO(saved);
+}
+
 
     public UsuarioDTO updateUsuario(Long id, UsuarioDTO dto) {
         Usuario existing = usuarioRepository.findById(id).orElse(null);
