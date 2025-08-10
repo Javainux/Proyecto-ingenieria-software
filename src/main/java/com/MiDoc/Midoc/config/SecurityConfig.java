@@ -45,13 +45,6 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .cors().and()
         .formLogin(form -> form
             .loginProcessingUrl("/login")
-            .successHandler((request, response, authentication) -> {
-                String sessionId = request.getSession().getId();
-                response.setHeader("Set-Cookie",
-                    "JSESSIONID=" + sessionId +
-                    "; Path=/; HttpOnly; Secure; SameSite=None");
-                response.setStatus(HttpServletResponse.SC_OK);
-            })
             .failureHandler((request, response, exception) -> {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login failed");
             })
