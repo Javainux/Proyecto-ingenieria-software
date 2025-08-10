@@ -2,13 +2,13 @@ package com.MiDoc.Midoc.Controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.MiDoc.Midoc.DTO.LoginDTO;
 import com.MiDoc.Midoc.DTO.RegistroDTO;
 import com.MiDoc.Midoc.DTO.UsuarioPerfilDTO;
+import com.MiDoc.Midoc.Model.Doctor;
+import com.MiDoc.Midoc.Model.Paciente;
 import com.MiDoc.Midoc.Model.Usuario;
+import com.MiDoc.Midoc.Repository.DoctorRepository;
+import com.MiDoc.Midoc.Repository.PacienteRepository;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,11 +28,7 @@ import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/cuenta")
-@CrossOrigin(
-    origins = "*", // Cambia esto por tu dominio en producción
-    methods = {RequestMethod.POST, RequestMethod.GET, RequestMethod.OPTIONS},
-    allowedHeaders = "*"
-)
+@CrossOrigin(origins = "*", methods = {RequestMethod.POST, RequestMethod.GET, RequestMethod.OPTIONS}, allowedHeaders = "*")
 public class LoginController {
 
     @Autowired
@@ -36,6 +36,12 @@ public class LoginController {
 
     @Autowired
     private UsuarioRepository usuarioRepo;
+
+    @Autowired
+    private PacienteRepository pacienteRepo;
+
+    @Autowired
+    private DoctorRepository doctorRepo;
 
     @Autowired
     private BCryptPasswordEncoder encoder;
@@ -46,11 +52,23 @@ public class LoginController {
             Usuario usuario = usuarioRepo.findByCorreo(loginDTO.getCorreo())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            Authentication auth = authManager.authenticate(
+            authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
             );
 
             request.getSession(true).setAttribute("usuario", usuario);
+
+            if ("PACIENTE".equals(usuario.getRol())) {
+                Paciente paciente = pacienteRepo.findById(usuario.getId())
+                    .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+                return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
+            }
+
+            if ("DOCTOR".equals(usuario.getRol())) {
+                Doctor doctor = doctorRepo.findById(usuario.getId())
+                    .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
+                return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
+            }
 
             return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
 
@@ -59,22 +77,10 @@ public class LoginController {
         }
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.OPTIONS)
-    public ResponseEntity<Void> handleOptions() {
-        return ResponseEntity.ok().build();
-    }
-
-    @RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
-    public ResponseEntity<Void> handleOptionsRegistro() {
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        if (session != null) session.invalidate();
         return ResponseEntity.ok("Sesión cerrada correctamente");
     }
 
@@ -85,36 +91,78 @@ public class LoginController {
                                              @RequestParam("password") String password,
                                              @RequestParam("rol") String rol,
                                              @RequestParam("numero") String numero,
-                                             @RequestParam("edad") int edad) {
+                                             @RequestParam("edad") int edad,
+                                             @RequestParam(value = "curp", required = false) String curp,
+                                             @RequestParam(value = "contactoEmergencia", required = false) String contactoEmergencia,
+                                             @RequestParam(value = "alergias", required = false) List<String> alergias,
+                                             @RequestParam(value = "enfermedadesCronicas", required = false) List<String> enfermedadesCronicas,
+                                             @RequestParam(value = "especialidad", required = false) String especialidad,
+                                             @RequestParam(value = "cedula", required = false) String cedula,
+                                             @RequestParam(value = "descripcion", required = false) String descripcion,
+                                             @RequestParam(value = "direccion", required = false) String direccion,
+                                             @RequestParam(value = "costoCita", required = false) Double costoCita,
+                                             @RequestParam(value = "latitud", required = false) Double latitud,
+                                             @RequestParam(value = "longitud", required = false) Double longitud,
+                                             @RequestParam(value = "otras_especialidades", required = false) List<String> otrasEspecialidades,
+                                             @RequestParam(value = "fechasDisponibles", required = false) List<String> fechasDisponibles) {
         try {
-            // Generar nombre único para la imagen
             String nombreArchivo = UUID.randomUUID().toString() + "_" + foto.getOriginalFilename();
-
-            // Ruta absoluta en el proyecto
             String carpetaPath = System.getProperty("user.dir") + "/uploads/";
             File carpeta = new File(carpetaPath);
             if (!carpeta.exists()) carpeta.mkdirs();
 
-            // Guardar archivo
             String ruta = carpetaPath + nombreArchivo;
             foto.transferTo(new File(ruta));
-
-            // URL pública para mostrar la imagen
             String urlFoto = "/uploads/" + nombreArchivo;
 
-            // Crear y guardar el usuario
-            Usuario nuevoUsuario = new Usuario();
-            nuevoUsuario.setNombre(nombre);
-            nuevoUsuario.setCorreo(correo);
-            nuevoUsuario.setContra(encoder.encode(password)); // Encriptado
-            nuevoUsuario.setRol(rol);
-            nuevoUsuario.setNumero(numero);
-            nuevoUsuario.setEdad(edad);
-            nuevoUsuario.setFoto_url(urlFoto); // Asegúrate que exista en tu entidad
+            if ("PACIENTE".equals(rol)) {
+                Paciente paciente = new Paciente();
+                paciente.setNombre(nombre);
+                paciente.setCorreo(correo);
+                paciente.setContra(encoder.encode(password));
+                paciente.setRol(rol);
+                paciente.setNumero(numero);
+                paciente.setEdad(edad);
+                paciente.setFoto_url(urlFoto);
+                paciente.setCurp(curp);
+                paciente.setContactoEmergencia(contactoEmergencia);
+                paciente.setAlergias(alergias);
+                paciente.setEnfermedadesCronicas(enfermedadesCronicas);
 
-            usuarioRepo.save(nuevoUsuario);
+                pacienteRepo.save(paciente);
+            } else if ("DOCTOR".equals(rol)) {
+                Doctor doctor = new Doctor();
+                doctor.setNombre(nombre);
+                doctor.setCorreo(correo);
+                doctor.setContra(encoder.encode(password));
+                doctor.setRol(rol);
+                doctor.setNumero(numero);
+                doctor.setEdad(edad);
+                doctor.setFoto_url(urlFoto);
+                doctor.setEspecialidad(especialidad);
+                doctor.setCedula(cedula);
+                doctor.setDescripcion(descripcion);
+                doctor.setDireccion(direccion);
+                doctor.setCostoCita(costoCita != null ? costoCita : 0.0);
+                doctor.setLatitud(latitud);
+                doctor.setLongitud(longitud);
+                doctor.setOtras_especialidades(otrasEspecialidades);
+                doctor.setFechasDisponibles(fechasDisponibles);
 
-            // Crear DTO de respuesta
+                doctorRepo.save(doctor);
+            } else {
+                Usuario nuevoUsuario = new Usuario();
+                nuevoUsuario.setNombre(nombre);
+                nuevoUsuario.setCorreo(correo);
+                nuevoUsuario.setContra(encoder.encode(password));
+                nuevoUsuario.setRol(rol);
+                nuevoUsuario.setNumero(numero);
+                nuevoUsuario.setEdad(edad);
+                nuevoUsuario.setFoto_url(urlFoto);
+
+                usuarioRepo.save(nuevoUsuario);
+            }
+
             RegistroDTO respuesta = new RegistroDTO();
             respuesta.setNombre(nombre);
             respuesta.setCorreo(correo);
@@ -137,10 +185,30 @@ public class LoginController {
         Usuario usuario = (Usuario) request.getSession().getAttribute("usuario");
 
         if (usuario != null) {
+            if ("PACIENTE".equals(usuario.getRol())) {
+                Paciente paciente = pacienteRepo.findById(usuario.getId())
+                    .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+                return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
+            }
+            if ("DOCTOR".equals(usuario.getRol())) {
+                Doctor doctor = doctorRepo.findById(usuario.getId())
+                    .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
+                return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
+            }
             return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
         } else {
             return ResponseEntity.status(401).body("No autenticado");
         }
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> handleOptionsLogin() {
+        return ResponseEntity.ok().build();
+    }
+
+    @RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> handleOptionsRegistro() {
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/test-password")
