@@ -42,6 +42,15 @@ public class UsuarioService {
                 .orElse(null);
     }
 
+    public UsuarioDTO obtenerPorCorreo(String correo){
+        return usuarioRepository.findByCorreo(correo).map(usuarioMapper::toDTO).orElse(null);
+    }
+
+    public Usuario obtenerEntidadPorCorreo(String correo) {
+    return usuarioRepository.findByCorreo(correo).orElse(null);
+}
+
+
    public UsuarioDTO createUsuario(UsuarioDTO dto) {
     Usuario usuario;
 

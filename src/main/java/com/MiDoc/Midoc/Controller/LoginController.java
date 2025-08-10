@@ -12,6 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
+
 
 import com.MiDoc.Midoc.DTO.LoginDTO;
 import com.MiDoc.Midoc.DTO.RegistroDTO;
@@ -22,6 +24,7 @@ import com.MiDoc.Midoc.Model.Usuario;
 import com.MiDoc.Midoc.Repository.DoctorRepository;
 import com.MiDoc.Midoc.Repository.PacienteRepository;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
+import com.MiDoc.Midoc.Service.UsuarioService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -256,28 +259,43 @@ public ResponseEntity<?> registroSinFoto(@RequestBody RegistroDTO dto) {
 }
 
 
+@Autowired
+private UsuarioService usuarioService;
 
 
-    @GetMapping("/perfil")
-    public ResponseEntity<?> perfil(HttpServletRequest request) {
-        Usuario usuario = (Usuario) request.getSession().getAttribute("usuario");
-
-        if (usuario != null) {
-            if ("PACIENTE".equals(usuario.getRol())) {
-                Paciente paciente = pacienteRepo.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-                return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
-            }
-            if ("DOCTOR".equals(usuario.getRol())) {
-                Doctor doctor = doctorRepo.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
-                return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
-            }
-            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
-        } else {
-            return ResponseEntity.status(401).body("No autenticado");
-        }
+  @GetMapping("/perfil")
+public ResponseEntity<?> perfil(Authentication authentication) {
+    if (authentication == null || !authentication.isAuthenticated()) {
+        return ResponseEntity.status(401).body("No autenticado");
     }
+
+    String correo = authentication.getName();
+
+    // 👇 Aquí debe usarse el método que devuelve el modelo
+    Usuario usuario = usuarioService.obtenerEntidadPorCorreo(correo); // ✅
+
+    if (usuario == null) {
+        return ResponseEntity.status(404).body("Usuario no encontrado");
+    }
+
+    switch (usuario.getRol()) {
+        case "PACIENTE":
+            Paciente paciente = pacienteRepo.findById(usuario.getId())
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+            return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
+
+        case "DOCTOR":
+            Doctor doctor = doctorRepo.findById(usuario.getId())
+                .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
+            return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
+
+        default:
+            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+    }
+}
+
+
+
 
     @RequestMapping(value = "/login", method = RequestMethod.OPTIONS)
     public ResponseEntity<Void> handleOptionsLogin() {
