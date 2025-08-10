@@ -23,6 +23,7 @@ import com.MiDoc.Midoc.Repository.DoctorRepository;
 import com.MiDoc.Midoc.Repository.PacienteRepository;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -46,6 +47,7 @@ public class LoginController {
     @Autowired
     private BCryptPasswordEncoder encoder;
 
+    @Operation(summary = "Login con JSON", description = "Autentica al usuario y devuelve su perfil")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
         try {

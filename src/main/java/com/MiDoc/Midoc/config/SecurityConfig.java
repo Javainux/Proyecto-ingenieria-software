@@ -38,28 +38,23 @@ public class SecurityConfig {
     private UserDetailsServiceImpl userDetailsService; // 👈 inyecta tu servicio
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/cuenta/perfil").authenticated()
-                .anyRequest().permitAll()
-            )
-            .cors().and()
-            .formLogin(form -> form
-                .loginProcessingUrl("/cuenta/login")
-                .permitAll()
-                .failureHandler((request, response, exception) -> {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login failed");
-                })
-            )
-            .userDetailsService(userDetailsService); // 👈 registra el servicio aquí
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/cuenta/login", "/cuenta/registro", "/webhook").permitAll()
+            .requestMatchers("/cuenta/perfil").authenticated()
+            .anyRequest().permitAll()
+        )
+        .cors().and()
+        .userDetailsService(userDetailsService); // 👈 sin formLogin
 
-        return http.build();
-    }
+    return http.build();
+}
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
