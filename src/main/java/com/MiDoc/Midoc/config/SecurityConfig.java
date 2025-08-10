@@ -10,19 +10,25 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.MiDoc.Midoc.Service.UserDetailsServiceImpl;
-
-import jakarta.servlet.http.HttpServletResponse;
+import com.MiDoc.Midoc.Util.JwtFilter; // ✅ Importa el filtro correctamente
 
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private JwtFilter jwtFilter; // ✅ Inyecta el filtro JWT
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -34,27 +40,24 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService; // 👈 inyecta tu servicio
-
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-        )
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/cuenta/login", "/cuenta/registro", "/webhook").permitAll()
-            .requestMatchers("/cuenta/perfil").authenticated()
-            .anyRequest().permitAll()
-        )
-        .cors().and()
-        .userDetailsService(userDetailsService); // 👈 sin formLogin
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // ✅ JWT no usa sesiones
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/cuenta/login", "/cuenta/registro", "/webhook").permitAll()
+                .requestMatchers("/cuenta/perfil").authenticated()
+                .anyRequest().permitAll()
+            )
+            .cors().and()
+            .userDetailsService(userDetailsService)
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // ✅ Registra el filtro
 
-    return http.build();
-}
-
+        return http.build();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -67,7 +70,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // ✅ permite enviar y recibir cookies
+        configuration.setAllowCredentials(true); // ✅ Permite cookies si las usas
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
