@@ -1,5 +1,8 @@
 package com.MiDoc.Midoc.Controller;
 
+import java.io.File;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -7,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.MiDoc.Midoc.DTO.LoginDTO;
 import com.MiDoc.Midoc.DTO.RegistroDTO;
@@ -75,26 +79,54 @@ public ResponseEntity<Void> handleOptionsRegistro() {
         return ResponseEntity.ok("Sesión cerrada correctamente");
     }
 
-    @PostMapping("/registro")
-public ResponseEntity<?> registro(@RequestBody RegistroDTO dto) {
+  @PostMapping("/registro")
+public ResponseEntity<?> registroConFoto(
+        @RequestParam("nombre") String nombre,
+        @RequestParam("edad") int edad,
+        @RequestParam("numero") String numero,
+        @RequestParam("correo") String correo,
+        @RequestParam("password") String password,
+        @RequestParam("rol") String rol,
+        @RequestParam("foto") MultipartFile foto
+) {
     try {
-        if (usuarioRepo.findByCorreo(dto.getCorreo()).isPresent()) {
+        if (usuarioRepo.findByCorreo(correo).isPresent()) {
             return ResponseEntity.status(409).body("El correo ya está registrado");
         }
 
+        // 🧠 Validar tipo de imagen
+        String tipo = foto.getContentType();
+        if (tipo == null || !tipo.startsWith("image/")) {
+            return ResponseEntity.badRequest().body("Solo se permiten imágenes");
+        }
+
+        // 📁 Crear carpeta si no existe
+        File carpeta = new File("uploads/");
+        if (!carpeta.exists()) {
+            carpeta.mkdirs();
+        }
+
+        // 💾 Guardar imagen
+        String nombreArchivo = UUID.randomUUID() + "_" + foto.getOriginalFilename();
+        String ruta = "uploads/" + nombreArchivo;
+        foto.transferTo(new File(ruta));
+        String urlFoto = "/uploads/" + nombreArchivo;
+
+        // 🧍 Crear usuario
         Usuario nuevoUsuario = new Usuario();
-        nuevoUsuario.setNombre(dto.getNombre());
-        nuevoUsuario.setEdad(dto.getEdad());
-        nuevoUsuario.setCorreo(dto.getCorreo());
-        nuevoUsuario.setContra(encoder.encode(dto.getPassword())); // ← sigue usando "contra"
-        nuevoUsuario.setRol(dto.getRol().toUpperCase());
-        nuevoUsuario.setNumero(dto.getNumero());
-        nuevoUsuario.setFoto_url(dto.getFoto_url());
+        nuevoUsuario.setNombre(nombre);
+        nuevoUsuario.setEdad(edad);
+        nuevoUsuario.setCorreo(correo);
+        nuevoUsuario.setContra(encoder.encode(password));
+        nuevoUsuario.setRol(rol.toUpperCase());
+        nuevoUsuario.setNumero(numero);
+        nuevoUsuario.setFoto_url(urlFoto);
 
         usuarioRepo.save(nuevoUsuario);
 
         return ResponseEntity.ok(new UsuarioPerfilDTO(nuevoUsuario));
     } catch (Exception e) {
+        e.printStackTrace();
         return ResponseEntity.status(500).body("Error al registrar usuario");
     }
 }
