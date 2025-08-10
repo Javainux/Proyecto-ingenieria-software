@@ -56,8 +56,6 @@ public class UsuarioPerfilDTO {
             this.descripcion = doctor.getDescripcion();
             this.direccion = doctor.getDireccion();
             this.costoCita = doctor.getCostoCita();
-            this.latitud = doctor.getLatitud();
-            this.longitud = doctor.getLongitud();
         }
     }
 

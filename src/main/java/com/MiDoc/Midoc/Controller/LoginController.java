@@ -85,100 +85,176 @@ public class LoginController {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<?> registroConFoto(@RequestParam("foto") MultipartFile foto,
-                                             @RequestParam("nombre") String nombre,
-                                             @RequestParam("correo") String correo,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("rol") String rol,
-                                             @RequestParam("numero") String numero,
-                                             @RequestParam("edad") int edad,
-                                             @RequestParam(value = "curp", required = false) String curp,
-                                             @RequestParam(value = "contactoEmergencia", required = false) String contactoEmergencia,
-                                             @RequestParam(value = "alergias", required = false) List<String> alergias,
-                                             @RequestParam(value = "enfermedadesCronicas", required = false) List<String> enfermedadesCronicas,
-                                             @RequestParam(value = "especialidad", required = false) String especialidad,
-                                             @RequestParam(value = "cedula", required = false) String cedula,
-                                             @RequestParam(value = "descripcion", required = false) String descripcion,
-                                             @RequestParam(value = "direccion", required = false) String direccion,
-                                             @RequestParam(value = "costoCita", required = false) Double costoCita,
-                                             @RequestParam(value = "latitud", required = false) Double latitud,
-                                             @RequestParam(value = "longitud", required = false) Double longitud,
-                                             @RequestParam(value = "otras_especialidades", required = false) List<String> otrasEspecialidades,
-                                             @RequestParam(value = "fechasDisponibles", required = false) List<String> fechasDisponibles) {
-        try {
-            String nombreArchivo = UUID.randomUUID().toString() + "_" + foto.getOriginalFilename();
-            String carpetaPath = System.getProperty("user.dir") + "/uploads/";
-            File carpeta = new File(carpetaPath);
-            if (!carpeta.exists()) carpeta.mkdirs();
+public ResponseEntity<?> registroConFoto(
+        @RequestParam("foto") MultipartFile foto,
+        @RequestParam("nombre") String nombre,
+        @RequestParam("correo") String correo,
+        @RequestParam("password") String password,
+        @RequestParam("rol") String rol,
+        @RequestParam("numero") String numero,
+        @RequestParam("edad") int edad,
+        @RequestParam(value = "curp", required = false) String curp,
+        @RequestParam(value = "contactoEmergencia", required = false) String contactoEmergencia,
+        @RequestParam(value = "alergias", required = false) List<String> alergias,
+        @RequestParam(value = "enfermedadesCronicas", required = false) List<String> enfermedadesCronicas,
+        @RequestParam(value = "especialidad", required = false) String especialidad,
+        @RequestParam(value = "cedula", required = false) String cedula,
+        @RequestParam(value = "descripcion", required = false) String descripcion,
+        @RequestParam(value = "direccion", required = false) String direccion,
+        @RequestParam(value = "costoCita", required = false) Double costoCita,
+        @RequestParam(value = "otras_especialidades", required = false) List<String> otrasEspecialidades,
+        @RequestParam(value = "fechasDisponibles", required = false) List<String> fechasDisponibles) {
 
-            String ruta = carpetaPath + nombreArchivo;
-            foto.transferTo(new File(ruta));
-            String urlFoto = "/uploads/" + nombreArchivo;
+    try {
+        if (usuarioRepo.findByCorreo(correo).isPresent()) {
+            return ResponseEntity.status(409).body("Ya existe un usuario con ese correo");
+        }
 
-            if ("PACIENTE".equals(rol)) {
-                Paciente paciente = new Paciente();
-                paciente.setNombre(nombre);
-                paciente.setCorreo(correo);
-                paciente.setContra(encoder.encode(password));
-                paciente.setRol(rol);
-                paciente.setNumero(numero);
-                paciente.setEdad(edad);
-                paciente.setFoto_url(urlFoto);
-                paciente.setCurp(curp);
-                paciente.setContactoEmergencia(contactoEmergencia);
-                paciente.setAlergias(alergias);
-                paciente.setEnfermedadesCronicas(enfermedadesCronicas);
+        String nombreArchivo = UUID.randomUUID().toString() + "_" + foto.getOriginalFilename().replaceAll("\\s+", "_");
+        String carpetaPath = System.getProperty("user.dir") + "/uploads/";
+        File carpeta = new File(carpetaPath);
+        if (!carpeta.exists()) carpeta.mkdirs();
 
-                pacienteRepo.save(paciente);
-            } else if ("DOCTOR".equals(rol)) {
-                Doctor doctor = new Doctor();
-                doctor.setNombre(nombre);
-                doctor.setCorreo(correo);
-                doctor.setContra(encoder.encode(password));
-                doctor.setRol(rol);
-                doctor.setNumero(numero);
-                doctor.setEdad(edad);
-                doctor.setFoto_url(urlFoto);
-                doctor.setEspecialidad(especialidad);
-                doctor.setCedula(cedula);
-                doctor.setDescripcion(descripcion);
-                doctor.setDireccion(direccion);
-                doctor.setCostoCita(costoCita != null ? costoCita : 0.0);
-                doctor.setLatitud(latitud);
-                doctor.setLongitud(longitud);
-                doctor.setOtras_especialidades(otrasEspecialidades);
-                doctor.setFechasDisponibles(fechasDisponibles);
+        String ruta = carpetaPath + nombreArchivo;
+        foto.transferTo(new File(ruta));
+        String urlFoto = "/uploads/" + nombreArchivo;
 
-                doctorRepo.save(doctor);
-            } else {
-                Usuario nuevoUsuario = new Usuario();
-                nuevoUsuario.setNombre(nombre);
-                nuevoUsuario.setCorreo(correo);
-                nuevoUsuario.setContra(encoder.encode(password));
-                nuevoUsuario.setRol(rol);
-                nuevoUsuario.setNumero(numero);
-                nuevoUsuario.setEdad(edad);
-                nuevoUsuario.setFoto_url(urlFoto);
+        if ("PACIENTE".equalsIgnoreCase(rol)) {
+            Paciente paciente = new Paciente();
+            paciente.setNombre(nombre);
+            paciente.setCorreo(correo);
+            paciente.setContra(encoder.encode(password));
+            paciente.setRol(rol);
+            paciente.setNumero(numero);
+            paciente.setEdad(edad);
+            paciente.setFoto_url(urlFoto);
+            paciente.setCurp(curp);
+            paciente.setContactoEmergencia(contactoEmergencia);
+            paciente.setAlergias(alergias != null ? alergias : List.of());
+            paciente.setEnfermedadesCronicas(enfermedadesCronicas != null ? enfermedadesCronicas : List.of());
 
-                usuarioRepo.save(nuevoUsuario);
+            pacienteRepo.save(paciente);
+        } else if ("DOCTOR".equalsIgnoreCase(rol)) {
+            if (especialidad == null || especialidad.isBlank() || cedula == null || cedula.isBlank()) {
+                return ResponseEntity.badRequest().body("Especialidad y cédula son obligatorias para doctores");
             }
 
-            RegistroDTO respuesta = new RegistroDTO();
-            respuesta.setNombre(nombre);
-            respuesta.setCorreo(correo);
-            respuesta.setPassword(password); // ⚠️ Solo para pruebas
-            respuesta.setRol(rol);
-            respuesta.setNumero(numero);
-            respuesta.setEdad(edad);
-            respuesta.setFoto_url(urlFoto);
+            Doctor doctor = new Doctor();
+            doctor.setNombre(nombre);
+            doctor.setCorreo(correo);
+            doctor.setContra(encoder.encode(password));
+            doctor.setRol(rol);
+            doctor.setNumero(numero);
+            doctor.setEdad(edad);
+            doctor.setFoto_url(urlFoto);
+            doctor.setEspecialidad(especialidad);
+            doctor.setCedula(cedula);
+            doctor.setDescripcion(descripcion);
+            doctor.setDireccion(direccion);
+            doctor.setCostoCita(costoCita != null ? costoCita : 0.0);
+            doctor.setOtras_especialidades(otrasEspecialidades != null ? otrasEspecialidades : List.of());
+            doctor.setFechasDisponibles(fechasDisponibles != null ? fechasDisponibles : List.of());
 
-            return ResponseEntity.ok(respuesta);
+            doctorRepo.save(doctor);
+        } else {
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setNombre(nombre);
+            nuevoUsuario.setCorreo(correo);
+            nuevoUsuario.setContra(encoder.encode(password));
+            nuevoUsuario.setRol(rol);
+            nuevoUsuario.setNumero(numero);
+            nuevoUsuario.setEdad(edad);
+            nuevoUsuario.setFoto_url(urlFoto);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Error al subir la imagen");
+            usuarioRepo.save(nuevoUsuario);
         }
+
+        RegistroDTO respuesta = new RegistroDTO();
+        respuesta.setNombre(nombre);
+        respuesta.setCorreo(correo);
+        respuesta.setRol(rol);
+        respuesta.setNumero(numero);
+        respuesta.setEdad(edad);
+        respuesta.setFoto_url(urlFoto);
+
+        return ResponseEntity.ok(respuesta);
+
+    } catch (IOException e) {
+        
+        return ResponseEntity.status(500).body("Error al subir la imagen");
     }
+}
+
+    @PostMapping("/registro/json")
+public ResponseEntity<?> registroSinFoto(@RequestBody RegistroDTO dto) {
+    try {
+        if (usuarioRepo.findByCorreo(dto.getCorreo()).isPresent()) {
+            return ResponseEntity.status(409).body("Ya existe un usuario con ese correo");
+        }
+
+        String urlFoto = "/uploads/default.png"; // Puedes cambiar esto por una imagen genérica
+
+        if ("PACIENTE".equalsIgnoreCase(dto.getRol())) {
+            Paciente paciente = new Paciente();
+            paciente.setNombre(dto.getNombre());
+            paciente.setCorreo(dto.getCorreo());
+            paciente.setContra(encoder.encode(dto.getPassword()));
+            paciente.setRol(dto.getRol());
+            paciente.setNumero(dto.getNumero());
+            paciente.setEdad(dto.getEdad());
+            paciente.setFoto_url(urlFoto);
+            paciente.setCurp(dto.getCurp());
+            paciente.setContactoEmergencia(dto.getContactoEmergencia());
+            paciente.setAlergias(dto.getAlergias() != null ? dto.getAlergias() : List.of());
+            paciente.setEnfermedadesCronicas(dto.getEnfermedadesCronicas() != null ? dto.getEnfermedadesCronicas() : List.of());
+
+            pacienteRepo.save(paciente);
+        } else if ("DOCTOR".equalsIgnoreCase(dto.getRol())) {
+            if (dto.getEspecialidad() == null || dto.getEspecialidad().isBlank() ||
+                dto.getCedula() == null || dto.getCedula().isBlank()) {
+                return ResponseEntity.badRequest().body("Especialidad y cédula son obligatorias para doctores");
+            }
+
+            Doctor doctor = new Doctor();
+            doctor.setNombre(dto.getNombre());
+            doctor.setCorreo(dto.getCorreo());
+            doctor.setContra(encoder.encode(dto.getPassword()));
+            doctor.setRol(dto.getRol());
+            doctor.setNumero(dto.getNumero());
+            doctor.setEdad(dto.getEdad());
+            doctor.setFoto_url(urlFoto);
+            doctor.setEspecialidad(dto.getEspecialidad());
+            doctor.setCedula(dto.getCedula());
+            doctor.setDescripcion(dto.getDescripcion());
+            doctor.setDireccion(dto.getDireccion());
+            doctor.setCostoCita(dto.getCostoCita() != null ? dto.getCostoCita() : 0.0);
+            doctor.setOtras_especialidades(dto.getOtras_especialidades() != null ? dto.getOtras_especialidades() : List.of());
+            doctor.setFechasDisponibles(dto.getFechasDisponibles() != null ? dto.getFechasDisponibles() : List.of());
+
+            doctorRepo.save(doctor);
+        } else {
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setNombre(dto.getNombre());
+            nuevoUsuario.setCorreo(dto.getCorreo());
+            nuevoUsuario.setContra(encoder.encode(dto.getPassword()));
+            nuevoUsuario.setRol(dto.getRol());
+            nuevoUsuario.setNumero(dto.getNumero());
+            nuevoUsuario.setEdad(dto.getEdad());
+            nuevoUsuario.setFoto_url(urlFoto);
+
+            usuarioRepo.save(nuevoUsuario);
+        }
+
+        dto.setFoto_url(urlFoto); // Agregamos la URL por consistencia
+        return ResponseEntity.ok(dto);
+
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Error al registrar usuario");
+    }
+}
+
+
+
 
     @GetMapping("/perfil")
     public ResponseEntity<?> perfil(HttpServletRequest request) {

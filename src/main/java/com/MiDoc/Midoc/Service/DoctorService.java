@@ -60,8 +60,7 @@ public class DoctorService {
         existing.setDescripcion(dto.getDescripcion());
         existing.setDireccion(dto.getDireccion());
         existing.setCostoCita(dto.getCostoCita());
-        existing.setLatitud(dto.getLatitud());
-        existing.setLongitud(dto.getLongitud());
+    
 
         Doctor updated = doctorRepository.save(existing);
         return doctorMapper.toDTO(updated);

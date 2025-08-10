@@ -34,8 +34,6 @@ public class DoctorMapper {
         dto.setDescripcion(doctor.getDescripcion());
         dto.setDireccion(doctor.getDireccion());
         dto.setCostoCita(doctor.getCostoCita());
-        dto.setLatitud(doctor.getLatitud());
-        dto.setLongitud(doctor.getLongitud());
 
         return dto;
     }
@@ -63,8 +61,6 @@ public class DoctorMapper {
         doctor.setDescripcion(dto.getDescripcion());
         doctor.setDireccion(dto.getDireccion());
         doctor.setCostoCita(dto.getCostoCita());
-        doctor.setLatitud(dto.getLatitud());
-        doctor.setLongitud(dto.getLongitud());
 
         return doctor;
     }

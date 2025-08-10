@@ -3,6 +3,7 @@ package com.MiDoc.Midoc.Model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -43,18 +44,11 @@ public class Doctor extends Usuario {
     @Schema(description = "Costo por cita médica", example = "500.00")
     private double costoCita;
 
-    @DecimalMin(value = "-90.0", message = "La latitud debe ser válida")
-    @DecimalMax(value = "90.0", message = "La latitud debe ser válida")
-    @Schema(description = "Latitud de la ubicación de la clínica", example = "19.4326")
-    private Double latitud;
-
-    @DecimalMin(value = "-180.0", message = "La longitud debe ser válida")
-    @DecimalMax(value = "180.0", message = "La longitud debe ser válida")
-    @Schema(description = "Longitud de la ubicación de la clínica", example = "-99.1332")
-    private Double longitud;
   
     public Doctor() {
         super();
+        this.otras_especialidades = new ArrayList<>();
+        this.fechasDisponibles = new ArrayList<>();
     }
 
   
@@ -70,8 +64,6 @@ public class Doctor extends Usuario {
     this.direccion = direccion;
     this.costoCita = costoCita;
     this.otras_especialidades = otras_especialidades;
-    this.latitud = latitud;
-    this.longitud = longitud;
 }
 
 
@@ -155,25 +147,6 @@ public class Doctor extends Usuario {
         this.costoCita = costoCita;
     }
 
-
-    public Double getLatitud() {
-        return latitud;
-    }
-
-
-    public void setLatitud(Double latitud) {
-        this.latitud = latitud;
-    }
-
-
-    public Double getLongitud() {
-        return longitud;
-    }
-
-
-    public void setLongitud(Double longitud) {
-        this.longitud = longitud;
-    }
 
     
     
