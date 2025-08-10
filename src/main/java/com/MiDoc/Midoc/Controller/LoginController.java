@@ -1,6 +1,7 @@
 package com.MiDoc.Midoc.Controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,17 +59,15 @@ public class LoginController {
         }
     }
 
-    // 👇 Manejo explícito del OPTIONS para evitar 502 en Railway
     @RequestMapping(value = "/login", method = RequestMethod.OPTIONS)
     public ResponseEntity<Void> handleOptions() {
-        return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
+        return ResponseEntity.ok().build();
     }
 
-@RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
-public ResponseEntity<Void> handleOptionsRegistro() {
-    return ResponseEntity.ok().build(); // Devuelve 200 OK para preflight
-}
-
+    @RequestMapping(value = "/registro", method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> handleOptionsRegistro() {
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
@@ -79,58 +78,59 @@ public ResponseEntity<Void> handleOptionsRegistro() {
         return ResponseEntity.ok("Sesión cerrada correctamente");
     }
 
-  @PostMapping("/registro")
-public ResponseEntity<?> registroConFoto(
-        @RequestParam("nombre") String nombre,
-        @RequestParam("edad") int edad,
-        @RequestParam("numero") String numero,
-        @RequestParam("correo") String correo,
-        @RequestParam("password") String password,
-        @RequestParam("rol") String rol,
-        @RequestParam("foto") MultipartFile foto
-) {
-    try {
-        if (usuarioRepo.findByCorreo(correo).isPresent()) {
-            return ResponseEntity.status(409).body("El correo ya está registrado");
+    @PostMapping("/registro")
+    public ResponseEntity<?> registroConFoto(@RequestParam("foto") MultipartFile foto,
+                                             @RequestParam("nombre") String nombre,
+                                             @RequestParam("correo") String correo,
+                                             @RequestParam("password") String password,
+                                             @RequestParam("rol") String rol,
+                                             @RequestParam("numero") String numero,
+                                             @RequestParam("edad") int edad) {
+        try {
+            // Generar nombre único para la imagen
+            String nombreArchivo = UUID.randomUUID().toString() + "_" + foto.getOriginalFilename();
+
+            // Ruta absoluta en el proyecto
+            String carpetaPath = System.getProperty("user.dir") + "/uploads/";
+            File carpeta = new File(carpetaPath);
+            if (!carpeta.exists()) carpeta.mkdirs();
+
+            // Guardar archivo
+            String ruta = carpetaPath + nombreArchivo;
+            foto.transferTo(new File(ruta));
+
+            // URL pública para mostrar la imagen
+            String urlFoto = "/uploads/" + nombreArchivo;
+
+            // Crear y guardar el usuario
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setNombre(nombre);
+            nuevoUsuario.setCorreo(correo);
+            nuevoUsuario.setContra(encoder.encode(password)); // Encriptado
+            nuevoUsuario.setRol(rol);
+            nuevoUsuario.setNumero(numero);
+            nuevoUsuario.setEdad(edad);
+            nuevoUsuario.setFoto_url(urlFoto); // Asegúrate que exista en tu entidad
+
+            usuarioRepo.save(nuevoUsuario);
+
+            // Crear DTO de respuesta
+            RegistroDTO respuesta = new RegistroDTO();
+            respuesta.setNombre(nombre);
+            respuesta.setCorreo(correo);
+            respuesta.setPassword(password); // ⚠️ Solo para pruebas
+            respuesta.setRol(rol);
+            respuesta.setNumero(numero);
+            respuesta.setEdad(edad);
+            respuesta.setFoto_url(urlFoto);
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error al subir la imagen");
         }
-
-        // 🧠 Validar tipo de imagen
-        String tipo = foto.getContentType();
-        if (tipo == null || !tipo.startsWith("image/")) {
-            return ResponseEntity.badRequest().body("Solo se permiten imágenes");
-        }
-
-        // 📁 Crear carpeta si no existe
-        File carpeta = new File("uploads/");
-        if (!carpeta.exists()) {
-            carpeta.mkdirs();
-        }
-
-        // 💾 Guardar imagen
-        String nombreArchivo = UUID.randomUUID() + "_" + foto.getOriginalFilename();
-        String ruta = "uploads/" + nombreArchivo;
-        foto.transferTo(new File(ruta));
-        String urlFoto = "/uploads/" + nombreArchivo;
-
-        // 🧍 Crear usuario
-        Usuario nuevoUsuario = new Usuario();
-        nuevoUsuario.setNombre(nombre);
-        nuevoUsuario.setEdad(edad);
-        nuevoUsuario.setCorreo(correo);
-        nuevoUsuario.setContra(encoder.encode(password));
-        nuevoUsuario.setRol(rol.toUpperCase());
-        nuevoUsuario.setNumero(numero);
-        nuevoUsuario.setFoto_url(urlFoto);
-
-        usuarioRepo.save(nuevoUsuario);
-
-        return ResponseEntity.ok(new UsuarioPerfilDTO(nuevoUsuario));
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Error al registrar usuario");
     }
-}
-
 
     @GetMapping("/perfil")
     public ResponseEntity<?> perfil(HttpServletRequest request) {
