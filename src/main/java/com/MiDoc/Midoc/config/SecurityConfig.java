@@ -3,6 +3,7 @@ package com.MiDoc.Midoc.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +17,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.MiDoc.Midoc.Service.UserDetailsServiceImpl;
-import com.MiDoc.Midoc.Util.JwtFilter; // ✅ Importa el filtro correctamente
+import com.MiDoc.Midoc.Util.JwtFilter;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class SecurityConfig {
     private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    private JwtFilter jwtFilter; // ✅ Inyecta el filtro JWT
+    private JwtFilter jwtFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -45,16 +46,19 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // ✅ JWT no usa sesiones
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ Preflight CORS
                 .requestMatchers("/cuenta/login", "/cuenta/registro", "/webhook").permitAll()
+                .requestMatchers("/doctor/**").hasRole("DOCTOR") // ✅ Modularización por rol
+                .requestMatchers("/paciente/**").hasRole("PACIENTE")
                 .requestMatchers("/cuenta/**", "/perfil").authenticated()
                 .anyRequest().permitAll()
             )
             .cors().and()
             .userDetailsService(userDetailsService)
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // ✅ Registra el filtro
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -69,10 +73,9 @@ public class SecurityConfig {
             "https://midoc-frontend.netlify.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-
-
-        configuration.setAllowCredentials(true); // ✅ Permite cookies si las usas
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("Authorization")); // ✅ Para que el frontend pueda leerlo
+        configuration.setAllowCredentials(false); // true si usas cookies
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
