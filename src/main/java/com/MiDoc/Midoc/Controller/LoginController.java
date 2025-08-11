@@ -281,15 +281,13 @@ private UsuarioService usuarioService;
 @GetMapping("/perfil")
 public ResponseEntity<?> perfil(Authentication authentication) {
     System.out.println("🛬 Entrando a /perfil con auth: " + authentication);
-    try {
-        System.out.println("🔍 Iniciando petición a /perfil");
 
+    try {
         if (authentication == null || !authentication.isAuthenticated()) {
             System.out.println("⚠️ Usuario no autenticado");
             return ResponseEntity.status(401).body("No autenticado");
         }
 
-        // ✅ Extraemos el correo desde el principal (UserDetails)
         String correo = ((UserDetails) authentication.getPrincipal()).getUsername();
         System.out.println("📧 Correo autenticado: " + correo);
 
@@ -300,21 +298,14 @@ public ResponseEntity<?> perfil(Authentication authentication) {
         }
 
         System.out.println("✅ Usuario encontrado: ID=" + usuario.getId() + ", Rol=" + usuario.getRol());
-        System.out.println("🧬 Tipo de clase: " + usuario.getClass().getName());
+        System.out.println("🧬 Tipo de clase real: " + usuario.getClass().getSimpleName());
 
-        switch (usuario.getRol()) {
-            case "PACIENTE":
-                Paciente paciente = pacienteRepo.findById(usuario.getId()).orElse(null);
-                if (paciente == null) return ResponseEntity.status(404).body("Paciente no encontrado");
-                return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
-
-            case "DOCTOR":
-                Doctor doctor = doctorRepo.findById(usuario.getId()).orElse(null);
-                if (doctor == null) return ResponseEntity.status(404).body("Doctor no encontrado");
-                return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
-
-            default:
-                return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+        if (usuario instanceof Paciente paciente) {
+            return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
+        } else if (usuario instanceof Doctor doctor) {
+            return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
+        } else {
+            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
         }
 
     } catch (Exception e) {
@@ -323,6 +314,7 @@ public ResponseEntity<?> perfil(Authentication authentication) {
         return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
     }
 }
+
 
 
     @GetMapping("/debug-auth")

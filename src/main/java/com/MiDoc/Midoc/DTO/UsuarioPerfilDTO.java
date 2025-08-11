@@ -30,8 +30,6 @@ public class UsuarioPerfilDTO {
     private String descripcion;
     private String direccion;
     private double costoCita;
-    private Double latitud;
-    private Double longitud;
 
     public UsuarioPerfilDTO(Usuario usuario) {
         this.nombre = usuario.getNombre();
