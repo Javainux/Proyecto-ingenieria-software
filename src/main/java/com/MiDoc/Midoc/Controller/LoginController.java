@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.MediaType;
 
 import com.MiDoc.Midoc.DTO.LoginDTO;
 import com.MiDoc.Midoc.DTO.RegistroDTO;
@@ -310,7 +311,11 @@ public ResponseEntity<?> perfil(Authentication authentication) {
             perfilDTO = new UsuarioPerfilDTO(usuario);
         }
 
-        return ResponseEntity.ok(perfilDTO);
+        return ResponseEntity
+    .ok()
+    .contentType(MediaType.APPLICATION_JSON)
+    .body(perfilDTO);
+
 
     } catch (Exception e) {
         System.out.println("🔥 Excepción atrapada en /cuenta/perfil:");
