@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
@@ -23,7 +24,7 @@ public class MetodoPago {
 private Long id;
 
 @Enumerated(EnumType.STRING)
-@NotBlank
+@NotNull
 private TipoTarjeta tipo;
 
 @Size(max = 50)
