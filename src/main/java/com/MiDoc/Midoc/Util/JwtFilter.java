@@ -38,6 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
                                     throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        System.out.println("🔍 Header Authorization: " + authHeader);
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
@@ -47,7 +48,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 System.out.println("📬 Usuario extraído del token: " + username);
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    // ✅ Extraer roles directamente del token
                     Claims claims = Jwts.parserBuilder()
                         .setSigningKey(jwtUtil.getSecretKey())
                         .build()
@@ -56,7 +56,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     List<String> roles = claims.get("roles", List.class);
                     List<GrantedAuthority> authorities = roles.stream()
-                        .map(SimpleGrantedAuthority::new)
+                        .map(role -> new SimpleGrantedAuthority(
+                            role.startsWith("ROLE_") ? role : "ROLE_" + role
+                        ))
                         .collect(Collectors.toList());
 
                     UsernamePasswordAuthenticationToken authToken =
