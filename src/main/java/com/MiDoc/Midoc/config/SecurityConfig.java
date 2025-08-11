@@ -64,19 +64,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
 
-        // ✅ Usamos patrones para mayor flexibilidad con proxies y subdominios
-        configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setExposedHeaders(List.of("Authorization")); // ✅ Para que el frontend pueda leerlo
-        configuration.setAllowCredentials(false); // true si usas cookies
+    // 🔧 Agrega X-Auth-Token a los headers permitidos
+    configuration.setAllowedHeaders(List.of("Authorization", "X-Auth-Token", "Content-Type"));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    // 🔧 Expón X-Auth-Token para que el frontend pueda leerlo si lo necesita
+    configuration.setExposedHeaders(List.of("Authorization", "X-Auth-Token"));
+
+    configuration.setAllowCredentials(false); // true si usas cookies
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
+
 }
