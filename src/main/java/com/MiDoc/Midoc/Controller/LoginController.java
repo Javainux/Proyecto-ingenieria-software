@@ -288,7 +288,7 @@ public ResponseEntity<?> perfil(Authentication authentication) {
             return ResponseEntity.status(401).body("No autenticado");
         }
 
-        String correo = ((UserDetails) authentication.getPrincipal()).getUsername();
+        String correo = authentication.getName(); // ✅ compatible con principal tipo String
         System.out.println("📧 Correo autenticado: " + correo);
 
         Usuario usuario = usuarioRepo.findByCorreo(correo).orElse(null);
