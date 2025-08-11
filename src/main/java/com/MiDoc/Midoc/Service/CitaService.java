@@ -4,9 +4,11 @@ import com.MiDoc.Midoc.DTO.CitaDTO;
 import com.MiDoc.Midoc.Mappers.CitaMapper;
 import com.MiDoc.Midoc.Model.Cita;
 import com.MiDoc.Midoc.Model.Doctor;
+import com.MiDoc.Midoc.Model.MetodoPago;
 import com.MiDoc.Midoc.Model.Paciente;
 import com.MiDoc.Midoc.Repository.CitaRepository;
 import com.MiDoc.Midoc.Repository.DoctorRepository;
+import com.MiDoc.Midoc.Repository.MetodoPagoRepository;
 import com.MiDoc.Midoc.Repository.PacienteRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,10 @@ public class CitaService {
     @Autowired
     private PacienteRepository pacienteRepo;
 
+    @Autowired
+private MetodoPagoRepository metodoPagoRepo;
+
+
     public List<CitaDTO> getAllCitas() {
         return citaRepo.findAll()
             .stream()
@@ -34,7 +40,7 @@ public class CitaService {
             .collect(Collectors.toList());
     }
 
-    public CitaDTO createCita(CitaDTO dto) {
+   public CitaDTO createCita(CitaDTO dto) {
     System.out.println("📥 DTO recibido: " + dto);
 
     Doctor doctor = doctorRepo.findById(dto.getDoctorId())
@@ -43,13 +49,17 @@ public class CitaService {
     Paciente paciente = pacienteRepo.findById(dto.getPacienteId())
         .orElseThrow(() -> new IllegalArgumentException("❌ Paciente no encontrado: " + dto.getPacienteId()));
 
-    System.out.println("✅ Doctor encontrado: " + doctor.getNombre());
-    System.out.println("✅ Paciente encontrado: " + paciente.getNombre());
-    System.out.println("🕒 Fecha: " + dto.getFecha() + " | Hora: " + dto.getHora());
-    System.out.println("📌 Estado: " + dto.getEstado() + " | Motivo: " + dto.getMotivo());
+    MetodoPago metodoPago = metodoPagoRepo.findById(dto.getMetodoPagoId())
+        .orElseThrow(() -> new IllegalArgumentException("❌ Método de pago no encontrado: " + dto.getMetodoPagoId()));
+
+    System.out.println("Doctor encontrado: " + doctor.getNombre());
+    System.out.println("Paciente encontrado: " + paciente.getNombre());
+    System.out.println(" Método de pago: " + metodoPago.getTipo() + " | " + metodoPago.getNumeroMasked());
+    System.out.println("Fecha: " + dto.getFecha() + " | Hora: " + dto.getHora());
+    System.out.println("Estado: " + dto.getEstado() + " | Motivo: " + dto.getMotivo());
 
     try {
-        Cita cita = CitaMapper.toEntity(dto, doctor, paciente);
+        Cita cita = CitaMapper.toEntity(dto, doctor, paciente, metodoPago);
         Cita citaGuardada = citaRepo.save(cita);
         System.out.println("✅ Cita guardada con ID: " + citaGuardada.getId());
         return CitaMapper.toDTO(citaGuardada);
@@ -59,6 +69,7 @@ public class CitaService {
         throw new RuntimeException("Error al guardar la cita: " + e.getMessage());
     }
 }
+
 
 
     public CitaDTO getCitaById(Long id) {
