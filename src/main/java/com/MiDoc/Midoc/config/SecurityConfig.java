@@ -49,7 +49,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/cuenta/login", "/cuenta/registro", "/webhook").permitAll()
-                .requestMatchers("/cuenta/perfil").authenticated()
+                .requestMatchers("/cuenta/**", "/perfil").authenticated()
                 .anyRequest().permitAll()
             )
             .cors().and()
