@@ -19,14 +19,33 @@ public class CitaMapper {
         return dto;
     }
 
-    public static Cita toEntity(CitaDTO dto, Doctor doctor, Paciente paciente) {
-        Cita cita = new Cita();
-        cita.setDoctor(doctor);
-        cita.setPaciente(paciente);
-        cita.setFecha(dto.getFecha());
-        cita.setHora(dto.getHora());
-        cita.setMotivo(dto.getMotivo());
-        cita.setEstado(dto.getEstado());
-        return cita;
+   public static Cita toEntity(CitaDTO dto, Doctor doctor, Paciente paciente) {
+    Cita cita = new Cita();
+
+    cita.setDoctor(doctor);
+    cita.setPaciente(paciente);
+
+    if (dto.getFecha() == null) {
+        throw new IllegalArgumentException("Fecha no puede ser nula");
     }
+    cita.setFecha(dto.getFecha());
+
+    if (dto.getHora() == null) {
+        throw new IllegalArgumentException("Hora no puede ser nula");
+    }
+    cita.setHora(dto.getHora());
+
+    if (dto.getMotivo() == null || dto.getMotivo().isBlank()) {
+        throw new IllegalArgumentException("Motivo no puede estar vacío");
+    }
+    cita.setMotivo(dto.getMotivo());
+
+    if (dto.getEstado() == null) {
+        throw new IllegalArgumentException("Estado no puede ser nulo");
+    }
+    cita.setEstado(dto.getEstado());
+
+    return cita;
+}
+
 }
