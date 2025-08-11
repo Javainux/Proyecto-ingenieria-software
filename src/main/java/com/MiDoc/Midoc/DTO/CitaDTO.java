@@ -1,6 +1,8 @@
 package com.MiDoc.Midoc.DTO;
 
 import com.MiDoc.Midoc.Model.EstadoCita;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -8,7 +10,9 @@ public class CitaDTO {
     private Long id;
     private Long doctorId;
     private Long pacienteId;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fecha;
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime hora;
     private String motivo;
     private EstadoCita estado;
