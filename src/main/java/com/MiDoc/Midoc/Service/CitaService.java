@@ -35,11 +35,31 @@ public class CitaService {
     }
 
     public CitaDTO createCita(CitaDTO dto) {
-        Doctor doctor = doctorRepo.findById(dto.getDoctorId()).orElseThrow();
-        Paciente paciente = pacienteRepo.findById(dto.getPacienteId()).orElseThrow();
+    System.out.println("📥 DTO recibido: " + dto);
+
+    Doctor doctor = doctorRepo.findById(dto.getDoctorId())
+        .orElseThrow(() -> new IllegalArgumentException("❌ Doctor no encontrado: " + dto.getDoctorId()));
+
+    Paciente paciente = pacienteRepo.findById(dto.getPacienteId())
+        .orElseThrow(() -> new IllegalArgumentException("❌ Paciente no encontrado: " + dto.getPacienteId()));
+
+    System.out.println("✅ Doctor encontrado: " + doctor.getNombre());
+    System.out.println("✅ Paciente encontrado: " + paciente.getNombre());
+    System.out.println("🕒 Fecha: " + dto.getFecha() + " | Hora: " + dto.getHora());
+    System.out.println("📌 Estado: " + dto.getEstado() + " | Motivo: " + dto.getMotivo());
+
+    try {
         Cita cita = CitaMapper.toEntity(dto, doctor, paciente);
-        return CitaMapper.toDTO(citaRepo.save(cita));
+        Cita citaGuardada = citaRepo.save(cita);
+        System.out.println("✅ Cita guardada con ID: " + citaGuardada.getId());
+        return CitaMapper.toDTO(citaGuardada);
+    } catch (Exception e) {
+        System.err.println("💥 Error al guardar la cita:");
+        e.printStackTrace();
+        throw new RuntimeException("Error al guardar la cita: " + e.getMessage());
     }
+}
+
 
     public CitaDTO getCitaById(Long id) {
         return citaRepo.findById(id).map(CitaMapper::toDTO).orElse(null);
