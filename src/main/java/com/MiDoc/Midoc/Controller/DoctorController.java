@@ -26,14 +26,8 @@ public class DoctorController {
     @GetMapping
 public ResponseEntity<?> listarDoctores() {
     System.out.println("📥 Petición recibida en /api/doctores");
-    return ResponseEntity.ok(List.of(
-        Map.of(
-            "nombre", "Dr. Prueba",
-            "especialidad", "Cardiología",
-            "calificacion", 4.9,
-            "direccion", "Calle Falsa 123"
-        )
-    ));
+   List<DoctorDTO> doctores = doctorService.getAllDoctors(); // ← Aquí consultas la base
+    return ResponseEntity.ok(doctores);
 }
 
 
