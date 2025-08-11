@@ -67,7 +67,8 @@ public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletReques
             new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
         );
 
-        String token = jwtUtil.generateToken(usuario.getCorreo()); // ✅ Generamos el token después de autenticar
+        List<String> roles = List.of("ROLE_" + usuario.getRol());
+        String token = jwtUtil.generateToken(usuario.getCorreo(), roles);
 
         UsuarioPerfilDTO perfilDTO;
 
@@ -83,7 +84,6 @@ public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletReques
             perfilDTO = new UsuarioPerfilDTO(usuario);
         }
 
-        // ✅ Creamos una respuesta que incluya el token y el perfil
         return ResponseEntity.ok(
             Map.of(
                 "token", token,
@@ -95,6 +95,7 @@ public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletReques
         return ResponseEntity.status(401).body("Credenciales inválidas");
     }
 }
+
 
 
     @PostMapping("/logout")

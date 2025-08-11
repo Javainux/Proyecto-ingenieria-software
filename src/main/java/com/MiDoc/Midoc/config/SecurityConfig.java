@@ -69,7 +69,9 @@ public class SecurityConfig {
             "https://midoc-frontend.netlify.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+
+
         configuration.setAllowCredentials(true); // ✅ Permite cookies si las usas
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

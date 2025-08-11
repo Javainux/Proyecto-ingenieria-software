@@ -3,11 +3,15 @@ package com.MiDoc.Midoc.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.MiDoc.Midoc.Service.UserDetailsServiceImpl;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,6 +19,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -41,22 +47,24 @@ public class JwtFilter extends OncePerRequestFilter {
                 System.out.println("📬 Usuario extraído del token: " + username);
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    // ✅ Extraer roles directamente del token
+                    Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(jwtUtil.getSecretKey())
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
 
-                    if (jwtUtil.validateToken(token, userDetails)) {
-                        UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                userDetails, // 👈 principal completo
-                                null,
-                                userDetails.getAuthorities()
-                            );
+                    List<String> roles = claims.get("roles", List.class);
+                    List<GrantedAuthority> authorities = roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
 
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                        System.out.println("✅ Authentication seteada para: " + userDetails.getUsername());
-                        System.out.println("🎭 Authorities: " + userDetails.getAuthorities());
-                    } else {
-                        System.out.println("❌ Token inválido para usuario: " + username);
-                    }
+                    UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("✅ Authentication seteada para: " + username);
+                    System.out.println("🎭 Authorities desde token: " + authorities);
                 }
             } catch (Exception e) {
                 System.out.println("🔥 Error al procesar el token JWT: " + e.getMessage());
