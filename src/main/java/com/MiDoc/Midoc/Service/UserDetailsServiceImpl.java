@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
@@ -21,21 +20,26 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UsuarioRepository usuarioRepo;
 
     @Override
-public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
-    System.out.println("🔍 Autenticando usuario: " + correo);
+    public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
+        System.out.println("🔍 Autenticando usuario: " + correo);
 
-    Usuario usuario = usuarioRepo.findByCorreo(correo)
-        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        Usuario usuario = usuarioRepo.findByCorreo(correo)
+            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-    System.out.println("🛡️ Rol asignado: " + usuario.getRol());
-    System.out.println("🔑 Contraseña en BD: " + usuario.getContra());
+        String rol = usuario.getRol();
+        if (rol == null || rol.isBlank()) {
+            System.out.println("⚠️ Rol vacío o nulo para usuario: " + correo);
+            throw new UsernameNotFoundException("Usuario sin rol asignado");
+        }
 
-    return new User(
-        usuario.getCorreo(),
-        usuario.getContra(),
-        List.of(new SimpleGrantedAuthority(
-            usuario.getRol().startsWith("ROLE_") ? usuario.getRol() : "ROLE_" + usuario.getRol()))
-    );
-}
+        String authority = rol.startsWith("ROLE_") ? rol : "ROLE_" + rol.toUpperCase();
+        System.out.println("🛡️ Autoridad asignada: " + authority);
+        System.out.println("🔑 Contraseña en BD: " + usuario.getContra());
 
+        return new User(
+            usuario.getCorreo(), // 👈 Esto será usado como authentication.getName()
+            usuario.getContra(),
+            List.of(new SimpleGrantedAuthority(authority))
+        );
+    }
 }

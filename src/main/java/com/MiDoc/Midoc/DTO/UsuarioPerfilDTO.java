@@ -1,6 +1,7 @@
 package com.MiDoc.Midoc.DTO;
 
 import java.util.List;
+import java.util.Collections;
 
 import com.MiDoc.Midoc.Model.Doctor;
 import com.MiDoc.Midoc.Model.Paciente;
@@ -17,14 +18,14 @@ public class UsuarioPerfilDTO {
     // Campos de paciente
     private String curp;
     private String contactoEmergencia;
-    private List<String> alergias;
-    private List<String> enfermedadesCronicas;
+    private List<String> alergias = Collections.emptyList();
+    private List<String> enfermedadesCronicas = Collections.emptyList();
 
     // Campos de doctor
     private String especialidad;
     private String cedula;
-    private List<String> otras_especialidades;
-    private List<String> fechasDisponibles;
+    private List<String> otras_especialidades = Collections.emptyList();
+    private List<String> fechasDisponibles = Collections.emptyList();
     private double calificacion;
     private String descripcion;
     private String direccion;
@@ -43,19 +44,20 @@ public class UsuarioPerfilDTO {
         if (usuario instanceof Paciente paciente) {
             this.curp = paciente.getCurp();
             this.contactoEmergencia = paciente.getContactoEmergencia();
-            this.alergias = paciente.getAlergias();
-            this.enfermedadesCronicas = paciente.getEnfermedadesCronicas();
+            this.alergias = paciente.getAlergias() != null ? paciente.getAlergias() : Collections.emptyList();
+            this.enfermedadesCronicas = paciente.getEnfermedadesCronicas() != null ? paciente.getEnfermedadesCronicas() : Collections.emptyList();
         }
 
         if (usuario instanceof Doctor doctor) {
             this.especialidad = doctor.getEspecialidad();
             this.cedula = doctor.getCedula();
-            this.otras_especialidades = doctor.getOtras_especialidades();
-            this.fechasDisponibles = doctor.getFechasDisponibles();
+            this.otras_especialidades = doctor.getOtras_especialidades() != null ? doctor.getOtras_especialidades() : Collections.emptyList();
+            this.fechasDisponibles = doctor.getFechasDisponibles() != null ? doctor.getFechasDisponibles() : Collections.emptyList();
             this.calificacion = doctor.getCalificacion();
             this.descripcion = doctor.getDescripcion();
             this.direccion = doctor.getDireccion();
             this.costoCita = doctor.getCostoCita();
+           
         }
     }
 
@@ -203,22 +205,8 @@ public class UsuarioPerfilDTO {
         this.costoCita = costoCita;
     }
 
-    public Double getLatitud() {
-        return latitud;
-    }
-
-    public void setLatitud(Double latitud) {
-        this.latitud = latitud;
-    }
-
-    public Double getLongitud() {
-        return longitud;
-    }
-
-    public void setLongitud(Double longitud) {
-        this.longitud = longitud;
-    }
+    // Getters y setters (sin cambios)
+    // ...
 
 
-    
 }

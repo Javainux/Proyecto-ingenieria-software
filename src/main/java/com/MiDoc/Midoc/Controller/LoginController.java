@@ -3,6 +3,7 @@ package com.MiDoc.Midoc.Controller;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.Authentication;
-
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.MiDoc.Midoc.DTO.LoginDTO;
 import com.MiDoc.Midoc.DTO.RegistroDTO;
@@ -25,6 +26,8 @@ import com.MiDoc.Midoc.Repository.DoctorRepository;
 import com.MiDoc.Midoc.Repository.PacienteRepository;
 import com.MiDoc.Midoc.Repository.UsuarioRepository;
 import com.MiDoc.Midoc.Service.UsuarioService;
+import com.MiDoc.Midoc.Util.JwtFilter;
+import com.MiDoc.Midoc.Util.JwtUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,37 +53,49 @@ public class LoginController {
     @Autowired
     private BCryptPasswordEncoder encoder;
 
-    @Operation(summary = "Login con JSON", description = "Autentica al usuario y devuelve su perfil")
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
-        try {
-            Usuario usuario = usuarioRepo.findByCorreo(loginDTO.getCorreo())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    @Autowired
+    private JwtUtil jwtUtil = new JwtUtil();
 
-            authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
-            );
+    @Operation(summary = "Login con JSON", description = "Autentica al usuario y devuelve su perfil + token JWT")
+@PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
+    try {
+        Usuario usuario = usuarioRepo.findByCorreo(loginDTO.getCorreo())
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            request.getSession(true).setAttribute("usuario", usuario);
+        authManager.authenticate(
+            new UsernamePasswordAuthenticationToken(loginDTO.getCorreo(), loginDTO.getPassword())
+        );
 
-            if ("PACIENTE".equals(usuario.getRol())) {
-                Paciente paciente = pacienteRepo.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
-                return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
-            }
+        String token = jwtUtil.generateToken(usuario.getCorreo()); // ✅ Generamos el token después de autenticar
 
-            if ("DOCTOR".equals(usuario.getRol())) {
-                Doctor doctor = doctorRepo.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
-                return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
-            }
+        UsuarioPerfilDTO perfilDTO;
 
-            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Credenciales inválidas");
+        if ("PACIENTE".equals(usuario.getRol())) {
+            Paciente paciente = pacienteRepo.findById(usuario.getId())
+                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+            perfilDTO = new UsuarioPerfilDTO(paciente);
+        } else if ("DOCTOR".equals(usuario.getRol())) {
+            Doctor doctor = doctorRepo.findById(usuario.getId())
+                .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
+            perfilDTO = new UsuarioPerfilDTO(doctor);
+        } else {
+            perfilDTO = new UsuarioPerfilDTO(usuario);
         }
+
+        // ✅ Creamos una respuesta que incluya el token y el perfil
+        return ResponseEntity.ok(
+            Map.of(
+                "token", token,
+                "perfil", perfilDTO
+            )
+        );
+
+    } catch (Exception e) {
+        return ResponseEntity.status(401).body("Credenciales inválidas");
     }
+}
+
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
@@ -263,8 +278,9 @@ public ResponseEntity<?> registroSinFoto(@RequestBody RegistroDTO dto) {
 private UsuarioService usuarioService;
 
 
- @GetMapping("/perfil")
+@GetMapping("/perfil")
 public ResponseEntity<?> perfil(Authentication authentication) {
+    System.out.println("🛬 Entrando a /perfil con auth: " + authentication);
     try {
         System.out.println("🔍 Iniciando petición a /perfil");
 
@@ -273,7 +289,8 @@ public ResponseEntity<?> perfil(Authentication authentication) {
             return ResponseEntity.status(401).body("No autenticado");
         }
 
-        String correo = authentication.getName();
+        // ✅ Extraemos el correo desde el principal (UserDetails)
+        String correo = ((UserDetails) authentication.getPrincipal()).getUsername();
         System.out.println("📧 Correo autenticado: " + correo);
 
         Usuario usuario = usuarioService.obtenerEntidadPorCorreo(correo);
@@ -287,37 +304,39 @@ public ResponseEntity<?> perfil(Authentication authentication) {
 
         switch (usuario.getRol()) {
             case "PACIENTE":
-                System.out.println("🔎 Buscando paciente con ID: " + usuario.getId());
                 Paciente paciente = pacienteRepo.findById(usuario.getId()).orElse(null);
-                if (paciente == null) {
-                    System.out.println("❌ Paciente no encontrado");
-                    return ResponseEntity.status(404).body("Paciente no encontrado");
-                }
-                System.out.println("✅ Paciente encontrado: " + paciente.getNombre());
+                if (paciente == null) return ResponseEntity.status(404).body("Paciente no encontrado");
                 return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
 
             case "DOCTOR":
-                System.out.println("🔎 Buscando doctor con ID: " + usuario.getId());
                 Doctor doctor = doctorRepo.findById(usuario.getId()).orElse(null);
-                if (doctor == null) {
-                    System.out.println("❌ Doctor no encontrado");
-                    return ResponseEntity.status(404).body("Doctor no encontrado");
-                }
-                System.out.println("✅ Doctor encontrado: " + doctor.getNombre());
+                if (doctor == null) return ResponseEntity.status(404).body("Doctor no encontrado");
                 return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
 
             default:
-                System.out.println("⚠️ Rol desconocido o genérico: " + usuario.getRol());
                 return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
         }
 
     } catch (Exception e) {
         System.out.println("🔥 Excepción atrapada en /perfil:");
-        e.printStackTrace(); // 👈 Esto lo verás en Railway logs
+        e.printStackTrace();
         return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
     }
 }
 
+
+    @GetMapping("/debug-auth")
+public ResponseEntity<?> debugAuth(Authentication authentication) {
+    if (authentication == null) return ResponseEntity.status(401).body("No autenticado");
+
+    return ResponseEntity.ok(
+        Map.of(
+            "name", authentication.getName(),
+            "authorities", authentication.getAuthorities(),
+            "principal", authentication.getPrincipal()
+        )
+    );
+}
 
 
 

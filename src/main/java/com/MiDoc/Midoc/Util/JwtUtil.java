@@ -15,13 +15,12 @@ public class JwtUtil {
 
     private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(String correo) {
         return Jwts.builder()
-            .setSubject(userDetails.getUsername())
-            .claim("rol", userDetails.getAuthorities().iterator().next().getAuthority())
+            .setSubject(correo)
             .setIssuedAt(new Date())
             .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 horas
-            .signWith(SECRET_KEY)
+            .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // ✅ Usamos SECRET_KEY correctamente
             .compact();
     }
 

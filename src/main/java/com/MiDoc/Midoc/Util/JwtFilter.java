@@ -9,12 +9,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.MiDoc.Midoc.Service.UserDetailsServiceImpl;
 
-import java.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -35,17 +35,32 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            String username = jwtUtil.extractUsername(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            try {
+                String username = jwtUtil.extractUsername(token);
+                System.out.println("📬 Usuario extraído del token: " + username);
 
-                if (jwtUtil.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    if (jwtUtil.validateToken(token, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                userDetails, // 👈 principal completo
+                                null,
+                                userDetails.getAuthorities()
+                            );
+
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        System.out.println("✅ Authentication seteada para: " + userDetails.getUsername());
+                        System.out.println("🎭 Authorities: " + userDetails.getAuthorities());
+                    } else {
+                        System.out.println("❌ Token inválido para usuario: " + username);
+                    }
                 }
+            } catch (Exception e) {
+                System.out.println("🔥 Error al procesar el token JWT: " + e.getMessage());
+                e.printStackTrace();
             }
         }
 
