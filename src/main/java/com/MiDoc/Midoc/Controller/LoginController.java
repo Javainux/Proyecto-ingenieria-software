@@ -277,10 +277,9 @@ public ResponseEntity<?> registroSinFoto(@RequestBody RegistroDTO dto) {
 @Autowired
 private UsuarioService usuarioService;
 
-
 @GetMapping("/perfil")
 public ResponseEntity<?> perfil(Authentication authentication) {
-    System.out.println("🛬 Entrando a /perfil con auth: " + authentication);
+    System.out.println("🛬 Entrando a /cuenta/perfil con auth: " + authentication);
 
     try {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -291,7 +290,7 @@ public ResponseEntity<?> perfil(Authentication authentication) {
         String correo = ((UserDetails) authentication.getPrincipal()).getUsername();
         System.out.println("📧 Correo autenticado: " + correo);
 
-        Usuario usuario = usuarioService.obtenerEntidadPorCorreo(correo);
+        Usuario usuario = usuarioRepo.findByCorreo(correo).orElse(null);
         if (usuario == null) {
             System.out.println("❌ Usuario no encontrado en BD para el correo: " + correo);
             return ResponseEntity.status(404).body("Usuario no encontrado");
@@ -300,20 +299,25 @@ public ResponseEntity<?> perfil(Authentication authentication) {
         System.out.println("✅ Usuario encontrado: ID=" + usuario.getId() + ", Rol=" + usuario.getRol());
         System.out.println("🧬 Tipo de clase real: " + usuario.getClass().getSimpleName());
 
+        UsuarioPerfilDTO perfilDTO;
+
         if (usuario instanceof Paciente paciente) {
-            return ResponseEntity.ok(new UsuarioPerfilDTO(paciente));
+            perfilDTO = new UsuarioPerfilDTO(paciente);
         } else if (usuario instanceof Doctor doctor) {
-            return ResponseEntity.ok(new UsuarioPerfilDTO(doctor));
+            perfilDTO = new UsuarioPerfilDTO(doctor);
         } else {
-            return ResponseEntity.ok(new UsuarioPerfilDTO(usuario));
+            perfilDTO = new UsuarioPerfilDTO(usuario);
         }
 
+        return ResponseEntity.ok(perfilDTO);
+
     } catch (Exception e) {
-        System.out.println("🔥 Excepción atrapada en /perfil:");
+        System.out.println("🔥 Excepción atrapada en /cuenta/perfil:");
         e.printStackTrace();
         return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
     }
 }
+
 
 
 
